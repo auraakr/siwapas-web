@@ -1,6 +1,6 @@
 # SIWAPAS: Sistem Informasi Wisata Pasirnanjung
 
-Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content, facility rental booking, event registration, and manual bank-transfer payments verified by an admin. Visitors do not need an account.
+Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content, facility rental booking, event registration, and manual bank-transfer payments verified by an admin. Visitors do not need an account to book; optional registered accounts get the guest role, and staff accounts get the admin role (users.role).
 
 ## Stack
 - Laravel (latest stable), PHP 8.3+
@@ -40,4 +40,4 @@ Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content,
 - Never commit .env or any secret.
 
 ## Out of scope
-- Online payment gateway, visitor accounts, UMKM cart or checkout (UMKM products are display only).
+- Online payment gateway, UMKM cart or checkout (UMKM products are display only).

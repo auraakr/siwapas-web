@@ -2,24 +2,32 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $email = config('siwapas.admin.email');
+        $password = config('siwapas.admin.password');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (! $email || ! $password) {
+            $this->command?->warn('ADMIN_EMAIL and ADMIN_PASSWORD are not set; skipping admin user.');
+
+            return;
+        }
+
+        $admin = User::firstOrNew(['email' => $email]);
+        $admin->forceFill([
+            'name' => config('siwapas.admin.name'),
+            'password' => $password,
+            'role' => UserRole::Admin,
+            'email_verified_at' => now(),
+        ])->save();
     }
 }

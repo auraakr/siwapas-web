@@ -7,6 +7,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('CREATE EXTENSION IF NOT EXISTS btree_gist');
 
         DB::statement('ALTER TABLE reservations ADD CONSTRAINT reservations_check_out_after_check_in CHECK (check_out > check_in)');
@@ -21,6 +25,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_no_overlap');
         DB::statement('ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_check_out_after_check_in');
     }
