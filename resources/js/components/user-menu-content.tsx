@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
+import type { ReactNode } from 'react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -14,9 +15,10 @@ import type { User } from '@/types';
 
 type Props = {
     user: User;
+    extraItems?: ReactNode;
 };
 
-export function UserMenuContent({ user }: Props) {
+export function UserMenuContent({ user, extraItems }: Props) {
     const cleanup = useMobileNavigation();
 
     const handleLogout = () => {
@@ -41,9 +43,10 @@ export function UserMenuContent({ user }: Props) {
                         onClick={cleanup}
                     >
                         <Settings className="mr-2" />
-                        Settings
+                        Pengaturan
                     </Link>
                 </DropdownMenuItem>
+                {extraItems}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
@@ -55,7 +58,7 @@ export function UserMenuContent({ user }: Props) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    Log out
+                    Keluar
                 </Link>
             </DropdownMenuItem>
         </>
