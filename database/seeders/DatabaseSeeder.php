@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! app()->isProduction()) {
+            $this->call(SampleDataSeeder::class);
+        }
+
         $email = config('siwapas.admin.email');
         $password = config('siwapas.admin.password');
 
