@@ -4,12 +4,12 @@ namespace App\Domain\Content\Models;
 
 use App\Domain\Content\Enums\ArticleCategory;
 use App\Domain\Content\Enums\PublishStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\ArticleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
@@ -21,11 +21,11 @@ use Spatie\Translatable\HasTranslations;
  * @property string|null $excerpt
  * @property string|null $body
  * @property ArticleCategory $category
- * @property Carbon|null $published_at
+ * @property CarbonImmutable|null $published_at
  * @property string|null $author_name
  * @property PublishStatus $status
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['slug', 'title', 'excerpt', 'body', 'category', 'published_at', 'author_name', 'status'])]
 #[UseFactory(ArticleFactory::class)]

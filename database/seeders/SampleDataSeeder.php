@@ -6,6 +6,7 @@ use App\Domain\Catalog\Models\Facility;
 use App\Domain\Content\Enums\DestinationType;
 use App\Domain\Content\Enums\PublishStatus;
 use App\Domain\Content\Models\Destination;
+use App\Domain\Payment\Enums\PaymentMethodType;
 use App\Domain\Payment\Models\BankAccount;
 use Illuminate\Database\Seeder;
 
@@ -35,6 +36,7 @@ class SampleDataSeeder extends Seeder
         ]);
 
         BankAccount::updateOrCreate(['account_number' => '1234567890'], [
+            'type' => PaymentMethodType::Bank,
             'bank_name' => 'BCA',
             'account_holder' => 'Desa Wisata Pasirnanjung Geulis',
             'is_active' => true,

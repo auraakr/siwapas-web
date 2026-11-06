@@ -2,13 +2,13 @@
 
 namespace App\Domain\Event\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\EventParticipantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -16,8 +16,8 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string|null $phone
  * @property array<string, mixed>|null $extra
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['event_registration_id', 'name', 'phone', 'extra'])]
 #[UseFactory(EventParticipantFactory::class)]

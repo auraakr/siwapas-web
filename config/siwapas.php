@@ -23,6 +23,8 @@ return [
     |--------------------------------------------------------------------------
     */
 
+    'display_timezone' => 'Asia/Jakarta',
+
     'rental_unit' => 'day',
 
     'payment' => [

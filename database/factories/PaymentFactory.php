@@ -22,7 +22,7 @@ class PaymentFactory extends Factory
             'order_id' => Order::factory(),
             'method' => 'manual_transfer',
             'bank_account_id' => BankAccount::factory(),
-            'bank_snapshot' => ['bank_name' => 'BCA', 'account_number' => '1234567890', 'account_holder' => 'Desa Wisata'],
+            'bank_snapshot' => [['type' => 'bank', 'name' => 'BCA', 'account_number' => '1234567890', 'account_holder' => 'Desa Wisata', 'qris_url' => null]],
             'expected_amount' => 500123,
             'status' => PaymentStatus::Pending,
         ];

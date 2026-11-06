@@ -3,12 +3,12 @@
 namespace App\Domain\Content\Models;
 
 use App\Domain\Content\Enums\PublishStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -20,8 +20,8 @@ use Spatie\Translatable\HasTranslations;
  * @property string|null $seo_title
  * @property string|null $seo_description
  * @property PublishStatus $status
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['key', 'slug', 'title', 'body', 'seo_title', 'seo_description', 'status'])]
 #[UseFactory(PageFactory::class)]

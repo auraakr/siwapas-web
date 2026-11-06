@@ -2,12 +2,12 @@
 
 namespace App\Domain\Content\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\ContactMessageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -16,9 +16,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $email
  * @property string|null $subject
  * @property string $message
- * @property Carbon|null $handled_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $handled_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['name', 'phone', 'email', 'subject', 'message', 'handled_at'])]
 #[UseFactory(ContactMessageFactory::class)]

@@ -3,13 +3,13 @@
 namespace App\Domain\Catalog\Models;
 
 use App\Domain\Catalog\Enums\PricingRuleType;
+use Carbon\CarbonImmutable;
 use Database\Factories\PricingRuleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -18,12 +18,12 @@ use Spatie\Translatable\HasTranslations;
  * @property string $name
  * @property PricingRuleType $type
  * @property array<int, int>|null $days_of_week
- * @property Carbon|null $date_from
- * @property Carbon|null $date_to
+ * @property CarbonImmutable|null $date_from
+ * @property CarbonImmutable|null $date_to
  * @property int $price
  * @property int $priority
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['facility_id', 'name', 'type', 'days_of_week', 'date_from', 'date_to', 'price', 'priority'])]
 #[UseFactory(PricingRuleFactory::class)]

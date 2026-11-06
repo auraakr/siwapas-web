@@ -3,6 +3,7 @@
 namespace App\Domain\Event\Models;
 
 use App\Domain\Payment\Models\Order;
+use Carbon\CarbonImmutable;
 use Database\Factories\EventRegistrationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -19,8 +19,8 @@ use Illuminate\Support\Carbon;
  * @property int $participant_count
  * @property bool $is_active
  * @property string $registration_code
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['order_id', 'event_id', 'participant_count', 'is_active', 'registration_code'])]
 #[UseFactory(EventRegistrationFactory::class)]

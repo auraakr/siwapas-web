@@ -6,6 +6,7 @@ use App\Domain\Booking\Models\Reservation;
 use App\Domain\Event\Models\EventRegistration;
 use App\Domain\Payment\Enums\OrderKind;
 use App\Domain\Payment\Enums\OrderStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -29,10 +29,10 @@ use Illuminate\Support\Carbon;
  * @property int $subtotal
  * @property int $unique_code
  * @property int $total
- * @property Carbon|null $expires_at
- * @property Carbon|null $confirmed_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $expires_at
+ * @property CarbonImmutable|null $confirmed_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['code', 'access_token', 'kind', 'customer_name', 'customer_phone', 'customer_email', 'notes', 'status', 'subtotal', 'unique_code', 'total', 'expires_at', 'confirmed_at'])]
 #[Hidden(['access_token'])]

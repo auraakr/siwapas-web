@@ -1,5 +1,8 @@
 <?php
 
+use App\Domain\Payment\Models\Order;
+use App\Domain\Payment\Models\Payment;
+use App\Domain\Payment\Models\PaymentProof;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +47,16 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * An order that has uploaded a proof and waits for an admin, with its pending payment.
+ *
+ * @return array{0: Order, 1: Payment, 2: PaymentProof}
+ */
+function orderAwaitingVerification(): array
 {
-    // ..
+    $order = Order::factory()->awaitingVerification()->create();
+    $payment = Payment::factory()->for($order)->create();
+    $proof = PaymentProof::factory()->for($payment)->create();
+
+    return [$order, $payment, $proof];
 }

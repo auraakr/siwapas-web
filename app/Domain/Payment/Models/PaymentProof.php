@@ -2,13 +2,13 @@
 
 namespace App\Domain\Payment\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\PaymentProofFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -19,11 +19,11 @@ use Illuminate\Support\Carbon;
  * @property string $mime_type
  * @property int $size
  * @property string|null $sender_name
- * @property Carbon|null $transfer_date
+ * @property CarbonImmutable|null $transfer_date
  * @property int|null $claimed_amount
- * @property Carbon $uploaded_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable $uploaded_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['payment_id', 'disk', 'path', 'original_name', 'mime_type', 'size', 'sender_name', 'transfer_date', 'claimed_amount', 'uploaded_at'])]
 #[UseFactory(PaymentProofFactory::class)]

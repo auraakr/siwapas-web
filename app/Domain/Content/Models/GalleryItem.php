@@ -3,12 +3,12 @@
 namespace App\Domain\Content\Models;
 
 use App\Domain\Content\Enums\GalleryItemType;
+use Carbon\CarbonImmutable;
 use Database\Factories\GalleryItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
@@ -21,8 +21,8 @@ use Spatie\Translatable\HasTranslations;
  * @property string|null $category
  * @property int $sort_order
  * @property bool $is_published
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['type', 'title', 'youtube_url', 'category', 'sort_order', 'is_published'])]
 #[UseFactory(GalleryItemFactory::class)]

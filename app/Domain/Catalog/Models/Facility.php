@@ -4,13 +4,13 @@ namespace App\Domain\Catalog\Models;
 
 use App\Domain\Booking\Models\Reservation;
 use App\Domain\Catalog\Enums\RentalUnit;
+use Carbon\CarbonImmutable;
 use Database\Factories\FacilityFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
@@ -26,8 +26,8 @@ use Spatie\Translatable\HasTranslations;
  * @property array<int, string>|null $rules
  * @property bool $is_active
  * @property int $sort_order
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['slug', 'name', 'description', 'capacity', 'unit', 'base_price', 'rules', 'is_active', 'sort_order'])]
 #[UseFactory(FacilityFactory::class)]

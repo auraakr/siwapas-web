@@ -4,12 +4,12 @@ namespace App\Domain\Content\Models;
 
 use App\Domain\Content\Enums\DestinationType;
 use App\Domain\Content\Enums\PublishStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\DestinationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
@@ -32,8 +32,8 @@ use Spatie\Translatable\HasTranslations;
  * @property int $sort_order
  * @property PublishStatus $status
  * @property string|null $video_url
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['slug', 'type', 'name', 'summary', 'description', 'address', 'latitude', 'longitude', 'opening_hours', 'facilities', 'rules', 'requires_reservation', 'is_featured', 'sort_order', 'status', 'video_url'])]
 #[UseFactory(DestinationFactory::class)]
