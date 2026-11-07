@@ -1,14 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import {
-    BadgeCheck,
-    BookOpen,
-    CalendarDays,
-    CalendarRange,
-    LayoutPanelLeft,
-    FolderGit2,
-    LayoutGrid,
-    Wallet,
-} from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -23,10 +14,6 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { index as events } from '@/routes/admin/events';
-import { index as paymentMethods } from '@/routes/admin/payment-methods';
-import { index as payments } from '@/routes/admin/payments';
-import { index as reservations } from '@/routes/admin/reservations';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -36,35 +23,6 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
-
-const adminNavItems: NavItem[] = [
-    {
-        title: 'Reservasi',
-        href: reservations(),
-        icon: CalendarRange,
-    },
-    {
-        title: 'Acara',
-        href: events(),
-        icon: CalendarDays,
-    },
-    {
-        title: 'Verifikasi pembayaran',
-        href: payments(),
-        icon: BadgeCheck,
-    },
-    {
-        title: 'Metode pembayaran',
-        href: paymentMethods(),
-        icon: Wallet,
-    },
-];
-
-const adminPanelItem: NavItem = {
-    title: 'Panel Admin (CRUD)',
-    href: '/admin',
-    icon: LayoutPanelLeft,
-};
 
 const footerNavItems: NavItem[] = [
     {
@@ -80,9 +38,6 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props;
-    const isAdmin = auth.user?.role === 'admin';
-
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -99,18 +54,10 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
-                {isAdmin && <NavMain items={adminNavItems} label="Admin" />}
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter
-                    items={
-                        isAdmin
-                            ? [adminPanelItem, ...footerNavItems]
-                            : footerNavItems
-                    }
-                    className="mt-auto"
-                />
+                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

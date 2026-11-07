@@ -3,7 +3,7 @@
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\RedirectNonAdminsHome;
+use App\Http\Middleware\RedirectAdminsToPanel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
-            'admin.home' => RedirectNonAdminsHome::class,
+            'admin.panel' => RedirectAdminsToPanel::class,
         ]);
 
         $middleware->web(append: [

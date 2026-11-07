@@ -33,7 +33,7 @@ Route::post('pesanan/{order:access_token}/bukti', [PaymentProofController::class
     ->name('orders.proof.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->middleware('admin.home')->name('dashboard');
+    Route::inertia('dashboard', 'dashboard')->middleware('admin.panel')->name('dashboard');
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->prefix('kelola')->name('admin.')->group(function () {

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\AdminLogoutResponse;
 use Carbon\CarbonImmutable;
+use Filament\Http\Responses\Auth\Contracts\LogoutResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -18,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(LogoutResponse::class, AdminLogoutResponse::class);
     }
 
     /**

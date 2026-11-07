@@ -3,7 +3,7 @@
 use App\Models\User;
 
 $adminPages = [
-    'dashboard' => '/admin',
+    'dashboard admin' => '/admin',
     'profil desa' => '/admin/pages',
     'destinasi' => '/admin/destinations',
     'produk lokal' => '/admin/local-products',
@@ -16,9 +16,13 @@ $adminPages = [
     'metode pembayaran' => '/admin/bank-accounts',
 ];
 
-it('redirects guests to the admin login page', function (string $url) {
-    $this->get($url)->assertRedirect('/admin/login');
+it('sends guests to the site login page instead of a separate admin login', function (string $url) {
+    $this->get($url)->assertRedirect(route('login'));
 })->with($adminPages);
+
+it('has no admin login page of its own', function () {
+    $this->get('/admin/login')->assertNotFound();
+});
 
 it('forbids registered visitors who are not admins', function (string $url) {
     $this->actingAs(User::factory()->create());
@@ -31,3 +35,11 @@ it('lets admins open every admin page', function (string $url) {
 
     $this->get($url)->assertOk();
 })->with($adminPages);
+
+it('signs admins out from the panel and returns them to the public site', function () {
+    $this->actingAs(User::factory()->admin()->create());
+
+    $this->post('/admin/logout')->assertRedirect(route('home'));
+
+    $this->assertGuest();
+});
