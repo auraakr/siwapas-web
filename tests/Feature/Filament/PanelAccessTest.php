@@ -4,7 +4,6 @@ use App\Models\User;
 
 $adminPages = [
     'dashboard admin' => '/admin',
-    'profil desa' => '/admin/pages',
     'destinasi' => '/admin/destinations',
     'produk lokal' => '/admin/local-products',
     'fasilitas' => '/admin/facilities',

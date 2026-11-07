@@ -7,6 +7,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\MenuItem;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -38,7 +39,24 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Emerald,
             ])
-            ->navigationGroups(['Konten', 'Layanan', 'Acara', 'Transaksi'])
+            ->navigationGroups(['Konten', 'Layanan', 'Acara', 'Transaksi', 'Situs Publik'])
+            ->navigationItems([
+                NavigationItem::make('Beranda')
+                    ->group('Situs Publik')
+                    ->icon('heroicon-o-home')
+                    ->url(fn (): string => route('home'), shouldOpenInNewTab: true)
+                    ->sort(1),
+                NavigationItem::make('Halaman Fasilitas')
+                    ->group('Situs Publik')
+                    ->icon('heroicon-o-building-office')
+                    ->url(fn (): string => route('facilities.index'), shouldOpenInNewTab: true)
+                    ->sort(2),
+                NavigationItem::make('Halaman Acara')
+                    ->group('Situs Publik')
+                    ->icon('heroicon-o-calendar-days')
+                    ->url(fn (): string => route('events.index'), shouldOpenInNewTab: true)
+                    ->sort(3),
+            ])
             ->plugin(SpatieLaravelTranslatablePlugin::make()->defaultLocales(['id', 'en']))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->pages([

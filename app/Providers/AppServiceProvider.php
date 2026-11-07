@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Translatable\Translatable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +31,17 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+        $this->configureTranslationFallback();
+    }
+
+    /**
+     * Indonesian is the primary content language: when a translation is missing for the
+     * active locale, show Indonesian, and then any other language that has been written.
+     * The admin forms read raw translations, so this never fills the English fields.
+     */
+    protected function configureTranslationFallback(): void
+    {
+        $this->app->make(Translatable::class)->fallback(fallbackLocale: 'id', fallbackAny: true);
     }
 
     /**

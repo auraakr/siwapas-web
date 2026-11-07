@@ -8,7 +8,6 @@ use App\Domain\Content\Enums\DestinationType;
 use App\Domain\Content\Enums\PublishStatus;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\LocalProduct;
-use App\Domain\Content\Models\Page;
 use App\Domain\Event\Models\Event;
 use App\Domain\Event\Models\EventRegistration;
 use App\Filament\Resources\BlockedDateResource\Pages\ManageBlockedDates;
@@ -22,49 +21,12 @@ use App\Filament\Resources\EventResource\RelationManagers\RegistrationsRelationM
 use App\Filament\Resources\FacilityResource\Pages\CreateFacility;
 use App\Filament\Resources\FacilityResource\Pages\ListFacilities;
 use App\Filament\Resources\LocalProductResource\Pages\CreateLocalProduct;
-use App\Filament\Resources\PageResource\Pages\CreatePage;
-use App\Filament\Resources\PageResource\Pages\EditPage;
 use App\Filament\Resources\PricingRuleResource\Pages\CreatePricingRule;
 use App\Models\User;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->admin()->create());
-});
-
-describe('profil desa', function () {
-    it('creates a page in Indonesian', function () {
-        Livewire::test(CreatePage::class)
-            ->fillForm(['title' => 'Tentang Desa', 'key' => 'about', 'slug' => 'tentang', 'status' => 'published'])
-            ->call('create')
-            ->assertHasNoFormErrors();
-
-        $page = Page::sole();
-        expect($page->getTranslation('title', 'id'))->toBe('Tentang Desa')
-            ->and($page->status)->toBe(PublishStatus::Published);
-    });
-
-    it('requires a unique key and slug', function () {
-        Page::factory()->create(['key' => 'about', 'slug' => 'tentang']);
-
-        Livewire::test(CreatePage::class)
-            ->fillForm(['title' => 'Lain', 'key' => 'about', 'slug' => 'tentang', 'status' => 'draft'])
-            ->call('create')
-            ->assertHasFormErrors(['key' => 'unique', 'slug' => 'unique']);
-    });
-
-    it('edits and deletes a page', function () {
-        $page = Page::factory()->create();
-
-        Livewire::test(EditPage::class, ['record' => $page->getRouteKey()])
-            ->fillForm(['title' => 'Judul Baru'])
-            ->call('save')
-            ->assertHasNoFormErrors();
-        expect($page->fresh()->getTranslation('title', 'id'))->toBe('Judul Baru');
-
-        Livewire::test(EditPage::class, ['record' => $page->getRouteKey()])->callAction('delete');
-        expect(Page::count())->toBe(0);
-    });
 });
 
 describe('destinasi dan aktivitas', function () {

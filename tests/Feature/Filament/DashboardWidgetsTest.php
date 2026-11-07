@@ -52,3 +52,12 @@ it('shows the widgets on the admin dashboard', function () {
         ->assertSee('Menunggu verifikasi')
         ->assertSee('Pembayaran menunggu verifikasi');
 });
+
+it('links to the public pages from the admin navigation', function () {
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee('Situs Publik')
+        ->assertSee('href="'.route('home').'"', false)
+        ->assertSee('href="'.route('facilities.index').'"', false)
+        ->assertSee('href="'.route('events.index').'"', false);
+});
