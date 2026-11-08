@@ -4,12 +4,18 @@ use App\Domain\Booking\Models\Reservation;
 use App\Domain\Catalog\Models\BlockedDate;
 use App\Domain\Catalog\Models\Facility;
 use App\Domain\Catalog\Models\PricingRule;
+use App\Domain\Content\Enums\ArticleCategory;
 use App\Domain\Content\Enums\DestinationType;
 use App\Domain\Content\Enums\PublishStatus;
+use App\Domain\Content\Models\Article;
 use App\Domain\Content\Models\Destination;
+use App\Domain\Content\Models\Faq;
 use App\Domain\Content\Models\LocalProduct;
 use App\Domain\Event\Models\Event;
 use App\Domain\Event\Models\EventRegistration;
+use App\Filament\Resources\ArticleResource\Pages\CreateArticle;
+use App\Filament\Resources\ArticleResource\Pages\EditArticle;
+use App\Filament\Resources\ArticleResource\Pages\ListArticles;
 use App\Filament\Resources\BlockedDateResource\Pages\ManageBlockedDates;
 use App\Filament\Resources\DestinationResource\Pages\CreateDestination;
 use App\Filament\Resources\DestinationResource\Pages\EditDestination;
@@ -20,6 +26,8 @@ use App\Filament\Resources\EventResource\Pages\ListEvents;
 use App\Filament\Resources\EventResource\RelationManagers\RegistrationsRelationManager;
 use App\Filament\Resources\FacilityResource\Pages\CreateFacility;
 use App\Filament\Resources\FacilityResource\Pages\ListFacilities;
+use App\Filament\Resources\FaqResource\Pages\CreateFaq;
+use App\Filament\Resources\FaqResource\Pages\ListFaqs;
 use App\Filament\Resources\LocalProductResource\Pages\CreateLocalProduct;
 use App\Filament\Resources\PricingRuleResource\Pages\CreatePricingRule;
 use App\Models\User;
@@ -195,5 +203,72 @@ describe('event dan kegiatan', function () {
             ->assertHasNoTableActionErrors();
 
         expect($registration->fresh()->is_active)->toBeFalse();
+    });
+});
+
+describe('cerita desa', function () {
+    it('creates a story that appears on the landing page once published', function () {
+        Livewire::test(CreateArticle::class)
+            ->fillForm([
+                'title' => 'Panen Padi Bersama',
+                'slug' => 'panen-padi-bersama',
+                'excerpt' => 'Warga memanen padi.',
+                'category' => 'culture',
+                'status' => 'published',
+                'published_at' => '2030-03-10 09:00:00',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $article = Article::sole();
+        expect($article->getTranslation('title', 'id'))->toBe('Panen Padi Bersama')
+            ->and($article->category)->toBe(ArticleCategory::Culture)
+            ->and($article->published_at->toDateTimeString())->toBe('2030-03-10 02:00:00');
+    });
+
+    it('requires a unique slug and a category', function () {
+        Article::factory()->create(['slug' => 'sudah-ada']);
+
+        Livewire::test(CreateArticle::class)
+            ->fillForm(['title' => 'Lain', 'slug' => 'sudah-ada', 'status' => 'draft'])
+            ->call('create')
+            ->assertHasFormErrors(['slug' => 'unique', 'category' => 'required']);
+    });
+
+    it('edits and deletes a story', function () {
+        $article = Article::factory()->create();
+
+        Livewire::test(EditArticle::class, ['record' => $article->getRouteKey()])
+            ->fillForm(['status' => 'draft', 'author_name' => 'Tim Desa'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+        expect($article->fresh()->author_name)->toBe('Tim Desa');
+
+        Livewire::test(ListArticles::class)->callTableAction('delete', $article);
+        expect(Article::count())->toBe(0);
+    });
+});
+
+describe('tanya jawab', function () {
+    it('creates, lists and deletes a question', function () {
+        Livewire::test(CreateFaq::class)
+            ->fillForm(['question' => 'Apakah perlu akun?', 'answer' => 'Tidak perlu.', 'sort_order' => 1, 'is_published' => true])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $faq = Faq::sole();
+        expect($faq->getTranslation('answer', 'id'))->toBe('Tidak perlu.');
+
+        Livewire::test(ListFaqs::class)
+            ->assertCanSeeTableRecords([$faq])
+            ->callTableAction('delete', $faq);
+        expect(Faq::count())->toBe(0);
+    });
+
+    it('requires both a question and an answer', function () {
+        Livewire::test(CreateFaq::class)
+            ->fillForm(['sort_order' => 0])
+            ->call('create')
+            ->assertHasFormErrors(['question' => 'required', 'answer' => 'required']);
     });
 });
