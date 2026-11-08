@@ -19,6 +19,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Contact Details
+    |--------------------------------------------------------------------------
+    |
+    | Shown in the site header, footer and landing page. Empty values are hidden.
+    | WhatsApp numbers use the local format, e.g. 081234567890.
+    |
+    */
+
+    'contact' => [
+        'phone' => env('SIWAPAS_CONTACT_PHONE'),
+        'whatsapp' => env('SIWAPAS_CONTACT_WHATSAPP'),
+        'email' => env('SIWAPAS_CONTACT_EMAIL'),
+        'address' => env('SIWAPAS_CONTACT_ADDRESS'),
+        'hours' => env('SIWAPAS_CONTACT_HOURS'),
+        'maps_url' => env('SIWAPAS_MAPS_URL'),
+        'instagram' => env('SIWAPAS_INSTAGRAM_URL'),
+        'facebook' => env('SIWAPAS_FACEBOOK_URL'),
+        'youtube' => env('SIWAPAS_YOUTUBE_URL'),
+    ],
+
+    'landing' => [
+        'video_url' => env('SIWAPAS_HERO_VIDEO_URL'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Business Defaults
     |--------------------------------------------------------------------------
     */

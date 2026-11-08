@@ -8,6 +8,23 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+    --font-serif:
+        'Fraunces', 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+    --color-forest-50: #f1f6f1;
+    --color-forest-100: #e1ede3;
+    --color-forest-200: #c2dbc7;
+    --color-forest-600: #2f7a52;
+    --color-forest-700: #266142;
+    --color-forest-800: #1d4d33;
+    --color-forest-900: #153b27;
+    --color-forest-950: #0e2a1b;
+
+    --color-cream: #faf6ec;
+    --color-cream-dark: #f1ead8;
+
+    --color-clay: #c4622d;
+    --color-clay-dark: #a54f21;
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
