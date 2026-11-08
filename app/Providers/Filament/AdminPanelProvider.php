@@ -6,13 +6,14 @@ use App\Http\Middleware\AuthenticateAdminPanel;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\SpatieLaravelTranslatablePlugin;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\MaxWidth;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -30,15 +31,18 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('SIWAPAS')
-            ->userMenuItems([
-                MenuItem::make()
-                    ->label('Lihat situs')
-                    ->url('/')
-                    ->icon('heroicon-o-globe-alt'),
-            ])
             ->colors([
-                'primary' => Color::Emerald,
+                'primary' => Color::hex('#2f7a52'),
+                'gray' => Color::Stone,
             ])
+            ->font('Instrument Sans')
+            ->maxContentWidth(MaxWidth::Full)
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('16rem')
+            ->collapsedSidebarWidth('3.5rem')
+            ->brandLogo(fn () => view('filament.brand'))
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('filament.admin-theme'))
+            ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.sidebar-user'))
             ->navigationGroups(['Konten', 'Layanan', 'Acara', 'Transaksi', 'Situs Publik'])
             ->navigationItems([
                 NavigationItem::make('Beranda')

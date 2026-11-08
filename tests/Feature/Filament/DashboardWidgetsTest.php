@@ -61,3 +61,22 @@ it('links to the public pages from the admin navigation', function () {
         ->assertSee('href="'.route('facilities.index').'"', false)
         ->assertSee('href="'.route('events.index').'"', false);
 });
+
+it('shows the signed-in account with its menu at the bottom of the sidebar', function () {
+    $admin = auth()->user();
+
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee($admin->name)
+        ->assertSee($admin->email)
+        ->assertSee('Pengaturan akun')
+        ->assertSee('data-test="admin-logout-button"', false)
+        ->assertSee('action="'.url('/admin/logout').'"', false);
+});
+
+it('applies the compact admin theme and the SIWAPAS brand', function () {
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee('.fi-sidebar-item-button', false)
+        ->assertSee('Panel Admin');
+});
