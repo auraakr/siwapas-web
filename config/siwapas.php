@@ -51,6 +51,14 @@ return [
 
     'display_timezone' => 'Asia/Jakarta',
 
+    /*
+    | Languages visitors can switch between on the public site. Content columns hold one
+    | translation per language; the default language is shown until a visitor chooses another.
+    */
+    'locales' => ['id', 'en'],
+
+    'default_locale' => 'id',
+
     'rental_unit' => 'day',
 
     'payment' => [

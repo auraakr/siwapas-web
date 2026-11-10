@@ -1,6 +1,7 @@
 import { MapPin } from 'lucide-react';
 import Media from '@/components/landing/media';
 import SectionHeading from '@/components/landing/section-heading';
+import { useTranslation } from '@/lib/i18n';
 import type { Destination } from '@/types/landing';
 
 export default function Destinations({
@@ -8,6 +9,8 @@ export default function Destinations({
 }: {
     destinations: Destination[];
 }) {
+    const { t } = useTranslation();
+
     if (destinations.length === 0) {
         return null;
     }
@@ -17,9 +20,9 @@ export default function Destinations({
             <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-[1fr_1.5fr]">
                 <div className="lg:pt-6">
                     <SectionHeading
-                        eyebrow="Destinasi Wisata"
-                        title="Jelajahi Pesona Alam & Warisan Pasirnanjung"
-                        description="Dari pemandangan alam hingga ruang budaya warga, temukan tempat-tempat yang paling berkesan di desa."
+                        eyebrow={t('destinations.eyebrow')}
+                        title={t('destinations.title')}
+                        description={t('destinations.description')}
                     />
                 </div>
 

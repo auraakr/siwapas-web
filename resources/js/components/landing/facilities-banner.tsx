@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import SectionHeading from '@/components/landing/section-heading';
 import { formatRupiah } from '@/lib/format';
+import { useTranslation } from '@/lib/i18n';
 import facilities from '@/routes/facilities';
 import type { FacilitySummary } from '@/types/landing';
 
@@ -9,6 +10,8 @@ export default function FacilitiesBanner({
 }: {
     items: FacilitySummary[];
 }) {
+    const { t } = useTranslation();
+
     return (
         <section
             id="fasilitas"
@@ -19,9 +22,9 @@ export default function FacilitiesBanner({
                 <SectionHeading
                     centered
                     inverted
-                    eyebrow="Layanan Desa"
-                    title="Sewa Fasilitas Desa Wisata"
-                    description="Gunakan fasilitas desa untuk pertemuan, acara keluarga, atau kegiatan kelompokmu. Pilih tanggal, kirim pesanan, dan pengelola akan mengonfirmasinya setelah bukti pembayaran diverifikasi."
+                    eyebrow={t('facilities.eyebrow')}
+                    title={t('facilities.title')}
+                    description={t('facilities.description')}
                 />
 
                 {items.length > 0 && (
@@ -34,9 +37,11 @@ export default function FacilitiesBanner({
                                 >
                                     {facility.name}
                                     <span className="ml-2 text-forest-200">
-                                        mulai{' '}
-                                        {formatRupiah(facility.base_price)} /
-                                        hari
+                                        {t('facilities.from', {
+                                            price: formatRupiah(
+                                                facility.base_price,
+                                            ),
+                                        })}
                                     </span>
                                 </Link>
                             </li>
@@ -48,7 +53,7 @@ export default function FacilitiesBanner({
                     href={facilities.index()}
                     className="mt-10 inline-block rounded-md bg-clay px-8 py-3.5 text-xs font-semibold tracking-wider text-white uppercase transition hover:bg-clay-dark"
                 >
-                    Pesan Fasilitas
+                    {t('facilities.cta')}
                 </Link>
             </div>
         </section>

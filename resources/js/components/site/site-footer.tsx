@@ -1,18 +1,20 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Leaf } from 'lucide-react';
+import { useTranslation, type MessageKey } from '@/lib/i18n';
 import { home } from '@/routes';
 import events from '@/routes/events';
 import facilities from '@/routes/facilities';
 
-const exploreLinks = [
-    { label: 'Destinasi Wisata', href: '/#destinasi' },
-    { label: 'Pengalaman Wisata', href: '/#pengalaman' },
-    { label: 'Produk Desa', href: '/#produk' },
-    { label: 'Cerita Desa', href: '/#cerita' },
+const exploreLinks: { label: MessageKey; href: string }[] = [
+    { label: 'nav.destinations', href: '/#destinasi' },
+    { label: 'nav.activities', href: '/#pengalaman' },
+    { label: 'nav.products', href: '/#produk' },
+    { label: 'nav.stories', href: '/#cerita' },
 ];
 
 export default function SiteFooter() {
     const { site } = usePage().props;
+    const { t } = useTranslation();
     const contact = site.contact;
     const socials = [
         { label: 'Instagram', href: contact.instagram },
@@ -33,25 +35,23 @@ export default function SiteFooter() {
                         </span>
                     </Link>
                     <p className="text-sm leading-relaxed text-forest-200">
-                        Sistem Informasi Wisata Pasirnanjung. Informasi
-                        destinasi, pemesanan fasilitas, dan pendaftaran acara
-                        Desa Wisata Pasirnanjung Geulis.
+                        {t('footer.about')}
                     </p>
                 </div>
 
                 <div>
                     <h3 className="mb-4 text-sm font-semibold tracking-wider text-cream uppercase">
-                        Jelajah Desa
+                        {t('footer.explore')}
                     </h3>
                     <ul className="space-y-2 text-sm text-forest-200">
                         {exploreLinks.map((link) => (
                             <li key={link.label}>
-                                <Link
+                                <a
                                     href={link.href}
                                     className="hover:text-cream"
                                 >
-                                    {link.label}
-                                </Link>
+                                    {t(link.label)}
+                                </a>
                             </li>
                         ))}
                     </ul>
@@ -59,7 +59,7 @@ export default function SiteFooter() {
 
                 <div>
                     <h3 className="mb-4 text-sm font-semibold tracking-wider text-cream uppercase">
-                        Layanan & Informasi
+                        {t('footer.services')}
                     </h3>
                     <ul className="space-y-2 text-sm text-forest-200">
                         <li>
@@ -67,7 +67,7 @@ export default function SiteFooter() {
                                 href={facilities.index()}
                                 className="hover:text-cream"
                             >
-                                Sewa Fasilitas
+                                {t('nav.facilities')}
                             </Link>
                         </li>
                         <li>
@@ -75,27 +75,28 @@ export default function SiteFooter() {
                                 href={events.index()}
                                 className="hover:text-cream"
                             >
-                                Event & Kegiatan
+                                {t('nav.events')}
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                href="/#kunjungan"
-                                className="hover:text-cream"
-                            >
-                                Informasi Kunjungan
-                            </Link>
+                            <a href="/#kunjungan" className="hover:text-cream">
+                                {t('nav.visitInfo')}
+                            </a>
                         </li>
                     </ul>
                 </div>
 
                 <div id="kontak" className="space-y-3 text-sm text-forest-200">
                     <h3 className="mb-4 text-sm font-semibold tracking-wider text-cream uppercase">
-                        Kontak
+                        {t('footer.contact')}
                     </h3>
                     {contact.address && <p>{contact.address}</p>}
                     {contact.hours && <p>{contact.hours}</p>}
-                    {contact.phone && <p>Telepon: {contact.phone}</p>}
+                    {contact.phone && (
+                        <p>
+                            {t('footer.phone')}: {contact.phone}
+                        </p>
+                    )}
                     {contact.whatsapp_url && (
                         <p>
                             <a
@@ -125,7 +126,7 @@ export default function SiteFooter() {
                         </p>
                     )}
                     {Object.keys(contact).length === 0 && (
-                        <p>Informasi kontak akan segera tersedia.</p>
+                        <p>{t('footer.noContact')}</p>
                     )}
                 </div>
             </div>
@@ -133,7 +134,7 @@ export default function SiteFooter() {
             <div className="border-t border-forest-800">
                 <p className="mx-auto max-w-6xl px-4 py-5 text-xs text-forest-200">
                     © {new Date().getFullYear()} Desa Wisata Pasirnanjung
-                    Geulis. Seluruh hak cipta dilindungi.
+                    Geulis. {t('footer.rights')}
                 </p>
             </div>
         </footer>

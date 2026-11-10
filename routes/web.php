@@ -9,12 +9,14 @@ use App\Http\Controllers\Public\EventController;
 use App\Http\Controllers\Public\EventRegistrationController;
 use App\Http\Controllers\Public\FacilityController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\LocaleController;
 use App\Http\Controllers\Public\OrderController;
 use App\Http\Controllers\Public\PaymentProofController;
 use App\Http\Controllers\Public\ReservationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::post('bahasa', [LocaleController::class, 'update'])->name('locale.update');
 
 Route::get('fasilitas', [FacilityController::class, 'index'])->name('facilities.index');
 Route::get('fasilitas/{facility:slug}', [FacilityController::class, 'show'])->name('facilities.show');

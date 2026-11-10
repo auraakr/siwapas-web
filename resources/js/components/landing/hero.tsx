@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ChevronDown, Play } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 import facilities from '@/routes/facilities';
 
 export default function Hero({
@@ -9,6 +10,8 @@ export default function Hero({
     image: string | null;
     videoUrl: string | null;
 }) {
+    const { t } = useTranslation();
+
     return (
         <section className="relative isolate overflow-hidden bg-forest-900 text-cream">
             {image ? (
@@ -25,7 +28,7 @@ export default function Hero({
             <div className="mx-auto flex min-h-[560px] max-w-6xl flex-col justify-center px-4 py-24 md:min-h-[640px]">
                 <p className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-cream/30 bg-forest-950/40 px-4 py-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase backdrop-blur">
                     <span className="size-1.5 rounded-full bg-clay" />
-                    Wisata Desa Pasirnanjung
+                    {t('hero.badge')}
                 </p>
 
                 <h1 className="font-serif text-5xl leading-[1.05] font-semibold md:text-7xl">
@@ -34,9 +37,7 @@ export default function Hero({
                 </h1>
 
                 <p className="mt-6 max-w-xl text-base leading-relaxed text-forest-100 md:text-lg">
-                    Menyatu dengan alam, budaya, dan warga desa. Jelajahi
-                    destinasi, ikuti kegiatan bersama masyarakat, dan sewa
-                    fasilitas desa untuk acaramu.
+                    {t('hero.description')}
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -44,13 +45,13 @@ export default function Hero({
                         href="#destinasi"
                         className="rounded-md bg-clay px-6 py-3 text-xs font-semibold tracking-wider text-white uppercase transition hover:bg-clay-dark"
                     >
-                        Jelajahi Destinasi
+                        {t('hero.explore')}
                     </a>
                     <Link
                         href={facilities.index()}
                         className="rounded-md border border-cream/50 px-6 py-3 text-xs font-semibold tracking-wider uppercase backdrop-blur transition hover:bg-cream/10"
                     >
-                        Sewa Fasilitas
+                        {t('hero.rent')}
                     </Link>
                     {videoUrl && (
                         <a
@@ -60,7 +61,7 @@ export default function Hero({
                             className="flex items-center gap-2 rounded-md px-4 py-3 text-xs font-semibold tracking-wider uppercase hover:text-clay"
                         >
                             <Play className="size-4" />
-                            Tonton Video
+                            {t('hero.video')}
                         </a>
                     )}
                 </div>
@@ -68,7 +69,7 @@ export default function Hero({
 
             <a
                 href="#tentang"
-                aria-label="Gulir ke bawah"
+                aria-label={t('hero.scroll')}
                 className="absolute bottom-5 left-1/2 -translate-x-1/2 animate-bounce text-cream/70"
             >
                 <ChevronDown className="size-6" />

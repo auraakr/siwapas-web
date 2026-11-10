@@ -1,5 +1,6 @@
 import { ChevronDown, Clock, MapPin } from 'lucide-react';
 import SectionHeading from '@/components/landing/section-heading';
+import { useTranslation } from '@/lib/i18n';
 import type { Contact, Faq } from '@/types/landing';
 
 export default function VisitInfo({
@@ -9,6 +10,7 @@ export default function VisitInfo({
     contact: Contact;
     faqs: Faq[];
 }) {
+    const { t } = useTranslation();
     const hasContact = Boolean(
         contact.address || contact.hours || contact.maps_url,
     );
@@ -22,8 +24,8 @@ export default function VisitInfo({
             <div className="mx-auto max-w-6xl px-4">
                 <SectionHeading
                     centered
-                    eyebrow="Informasi Kunjungan"
-                    title="Informasi Kunjungan & Tanya Jawab"
+                    eyebrow={t('visit.eyebrow')}
+                    title={t('visit.title')}
                 />
 
                 <div className="mt-12 grid gap-8 lg:grid-cols-2">
@@ -53,7 +55,7 @@ export default function VisitInfo({
                                             rel="noreferrer"
                                             className="rounded-md bg-forest-800 px-4 py-2 text-xs font-semibold tracking-wide text-cream uppercase transition hover:bg-forest-900"
                                         >
-                                            Buka di Peta
+                                            {t('visit.map')}
                                         </a>
                                     )}
                                     {contact.whatsapp_url && (
@@ -63,7 +65,7 @@ export default function VisitInfo({
                                             rel="noreferrer"
                                             className="rounded-md border border-forest-800 px-4 py-2 text-xs font-semibold tracking-wide text-forest-900 uppercase transition hover:bg-forest-800 hover:text-cream"
                                         >
-                                            Hubungi WhatsApp
+                                            {t('visit.whatsapp')}
                                         </a>
                                     )}
                                 </div>

@@ -1,8 +1,11 @@
 import Media from '@/components/landing/media';
 import SectionHeading from '@/components/landing/section-heading';
+import { useTranslation } from '@/lib/i18n';
 import type { Product } from '@/types/landing';
 
 export default function Products({ products }: { products: Product[] }) {
+    const { t } = useTranslation();
+
     if (products.length === 0) {
         return null;
     }
@@ -11,9 +14,9 @@ export default function Products({ products }: { products: Product[] }) {
         <section id="produk" className="scroll-mt-24 bg-cream py-20">
             <div className="mx-auto max-w-6xl px-4">
                 <SectionHeading
-                    eyebrow="Karya Warga Desa"
-                    title="Produk Pilihan Desa"
-                    description="Oleh-oleh dan karya UMKM warga. Hubungi pembuatnya langsung untuk memesan."
+                    eyebrow={t('products.eyebrow')}
+                    title={t('products.title')}
+                    description={t('products.description')}
                 />
 
                 <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -41,12 +44,12 @@ export default function Products({ products }: { products: Product[] }) {
                                 )}
                                 {product.whatsapp_url && (
                                     <a
-                                        href={`${product.whatsapp_url}?text=${encodeURIComponent(`Halo, saya tertarik dengan ${product.name}.`)}`}
+                                        href={`${product.whatsapp_url}?text=${encodeURIComponent(t('products.message', { name: product.name }))}`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="mt-4 inline-block self-start rounded-md border border-forest-800 px-4 py-2 text-xs font-semibold tracking-wide text-forest-900 uppercase transition hover:bg-forest-800 hover:text-cream"
                                     >
-                                        Hubungi via WhatsApp
+                                        {t('products.contact')}
                                     </a>
                                 )}
                             </div>

@@ -9,10 +9,8 @@ import Hero from '@/components/landing/hero';
 import Products from '@/components/landing/products';
 import Stories from '@/components/landing/stories';
 import VisitInfo from '@/components/landing/visit-info';
+import { useTranslation } from '@/lib/i18n';
 import type { LandingProps } from '@/types/landing';
-
-const description =
-    'Desa Wisata Pasirnanjung Geulis: jelajahi destinasi alam dan budaya, ikuti kegiatan bersama warga, sewa fasilitas desa, dan daftar acara secara online.';
 
 export default function Welcome({
     images,
@@ -26,13 +24,16 @@ export default function Welcome({
     faqs,
 }: LandingProps) {
     const { site } = usePage().props;
+    const { t, locale } = useTranslation();
     const contact = site.contact;
+    const description = t('meta.description');
 
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'TouristDestination',
         name: 'Desa Wisata Pasirnanjung Geulis',
         description,
+        inLanguage: locale,
         ...(images.hero && { image: images.hero }),
         ...(contact.address && { address: contact.address }),
         ...(contact.phone && { telephone: contact.phone }),
@@ -48,6 +49,10 @@ export default function Welcome({
                     content="Desa Wisata Pasirnanjung Geulis"
                 />
                 <meta property="og:description" content={description} />
+                <meta
+                    property="og:locale"
+                    content={locale === 'en' ? 'en_US' : 'id_ID'}
+                />
                 {images.hero && (
                     <meta property="og:image" content={images.hero} />
                 )}

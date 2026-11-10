@@ -2,10 +2,13 @@ import { Link } from '@inertiajs/react';
 import { Clock, MapPin } from 'lucide-react';
 import SectionHeading from '@/components/landing/section-heading';
 import { dateParts, formatRupiah, formatTime } from '@/lib/format';
+import { useTranslation } from '@/lib/i18n';
 import events from '@/routes/events';
 import type { EventSummary } from '@/types/landing';
 
 export default function Events({ items }: { items: EventSummary[] }) {
+    const { t, locale } = useTranslation();
+
     if (items.length === 0) {
         return null;
     }
@@ -15,20 +18,23 @@ export default function Events({ items }: { items: EventSummary[] }) {
             <div className="mx-auto max-w-5xl px-4">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <SectionHeading
-                        eyebrow="Agenda Desa"
-                        title="Event & Kegiatan Mendatang"
+                        eyebrow={t('events.eyebrow')}
+                        title={t('events.title')}
                     />
                     <Link
                         href={events.index()}
                         className="text-sm font-semibold text-forest-800 underline-offset-4 hover:text-clay hover:underline"
                     >
-                        Lihat semua acara →
+                        {t('events.all')}
                     </Link>
                 </div>
 
                 <ul className="mt-10 space-y-4">
                     {items.map((event) => {
-                        const { day, month } = dateParts(event.starts_at);
+                        const { day, month } = dateParts(
+                            event.starts_at,
+                            locale,
+                        );
 
                         return (
                             <li
@@ -51,7 +57,11 @@ export default function Events({ items }: { items: EventSummary[] }) {
                                     <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-forest-800/80">
                                         <span className="flex items-center gap-1.5">
                                             <Clock className="size-3.5" />
-                                            {formatTime(event.starts_at)} WIB
+                                            {formatTime(
+                                                event.starts_at,
+                                                locale,
+                                            )}{' '}
+                                            WIB
                                         </span>
                                         {event.location_name && (
                                             <span className="flex items-center gap-1.5">
@@ -65,14 +75,14 @@ export default function Events({ items }: { items: EventSummary[] }) {
                                 <span className="rounded-full bg-forest-50 px-3 py-1 text-xs font-semibold text-forest-800">
                                     {event.fee > 0
                                         ? formatRupiah(event.fee)
-                                        : 'Gratis'}
+                                        : t('events.free')}
                                 </span>
 
                                 <Link
                                     href={events.show(event.slug)}
                                     className="rounded-md bg-clay px-5 py-2.5 text-xs font-semibold tracking-wide text-white uppercase transition hover:bg-clay-dark"
                                 >
-                                    Daftar
+                                    {t('events.register')}
                                 </Link>
                             </li>
                         );
