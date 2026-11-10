@@ -158,3 +158,25 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Login and register pages follow the landing page palette (forest green, cream, clay). */
+.auth-theme {
+    color-scheme: light;
+    --background: #faf6ec;
+    --foreground: #0e2a1b;
+    --card: #ffffff;
+    --card-foreground: #0e2a1b;
+    --popover: #ffffff;
+    --popover-foreground: #0e2a1b;
+    --primary: #c4622d;
+    --primary-foreground: #ffffff;
+    --secondary: #f1ead8;
+    --secondary-foreground: #153b27;
+    --muted: #f1ead8;
+    --muted-foreground: #4b6b57;
+    --accent: #e1ede3;
+    --accent-foreground: #153b27;
+    --border: #c2dbc7;
+    --input: #c2dbc7;
+    --ring: #c4622d;
+}
