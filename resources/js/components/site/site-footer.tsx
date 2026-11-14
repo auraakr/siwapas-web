@@ -1,5 +1,4 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Leaf } from 'lucide-react';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
 import { home } from '@/routes';
 import events from '@/routes/events';
@@ -22,17 +21,27 @@ export default function SiteFooter() {
         { label: 'YouTube', href: contact.youtube },
     ].filter((item) => item.href);
 
+    const phoneHref = contact.phone
+        ? `tel:${contact.phone.replace(/[^\d+]/g, '')}`
+        : undefined;
+
     return (
         <footer className="bg-forest-950 text-forest-100">
-            <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-2 lg:grid-cols-4">
+            <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-4">
-                    <Link href={home()} className="flex items-center gap-3">
-                        <span className="flex size-10 items-center justify-center rounded-full bg-forest-700 text-cream">
-                            <Leaf className="size-5" />
-                        </span>
-                        <span className="font-serif text-xl font-semibold text-cream">
-                            SIWAPAS
-                        </span>
+                    <Link
+                        href={home()}
+                        aria-label="SIWAPAS Pasirnanjung Geulis"
+                        className="inline-block"
+                    >
+                        <img
+                            src="/images/brand/logo.png"
+                            alt=""
+                            width={1000}
+                            height={336}
+                            loading="lazy"
+                            className="h-16 w-auto"
+                        />
                     </Link>
                     <p className="text-sm leading-relaxed text-forest-200">
                         {t('footer.about')}
@@ -48,7 +57,7 @@ export default function SiteFooter() {
                             <li key={link.label}>
                                 <a
                                     href={link.href}
-                                    className="hover:text-cream"
+                                    className="transition hover:text-cream"
                                 >
                                     {t(link.label)}
                                 </a>
@@ -65,7 +74,7 @@ export default function SiteFooter() {
                         <li>
                             <Link
                                 href={facilities.index()}
-                                className="hover:text-cream"
+                                className="transition hover:text-cream"
                             >
                                 {t('nav.facilities')}
                             </Link>
@@ -73,13 +82,16 @@ export default function SiteFooter() {
                         <li>
                             <Link
                                 href={events.index()}
-                                className="hover:text-cream"
+                                className="transition hover:text-cream"
                             >
                                 {t('nav.events')}
                             </Link>
                         </li>
                         <li>
-                            <a href="/#kunjungan" className="hover:text-cream">
+                            <a
+                                href="/#kunjungan"
+                                className="transition hover:text-cream"
+                            >
                                 {t('nav.visitInfo')}
                             </a>
                         </li>
@@ -90,11 +102,31 @@ export default function SiteFooter() {
                     <h3 className="mb-4 text-sm font-semibold tracking-wider text-cream uppercase">
                         {t('footer.contact')}
                     </h3>
-                    {contact.address && <p>{contact.address}</p>}
+                    {contact.address &&
+                        (contact.maps_url ? (
+                            <p>
+                                <a
+                                    href={contact.maps_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="transition hover:text-cream"
+                                >
+                                    {contact.address}
+                                </a>
+                            </p>
+                        ) : (
+                            <p>{contact.address}</p>
+                        ))}
                     {contact.hours && <p>{contact.hours}</p>}
                     {contact.phone && (
                         <p>
-                            {t('footer.phone')}: {contact.phone}
+                            {t('footer.phone')}:{' '}
+                            <a
+                                href={phoneHref}
+                                className="underline hover:text-cream"
+                            >
+                                {contact.phone}
+                            </a>
                         </p>
                     )}
                     {contact.whatsapp_url && (
@@ -102,14 +134,23 @@ export default function SiteFooter() {
                             <a
                                 href={contact.whatsapp_url}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                                 className="underline hover:text-cream"
                             >
                                 WhatsApp {contact.whatsapp}
                             </a>
                         </p>
                     )}
-                    {contact.email && <p>{contact.email}</p>}
+                    {contact.email && (
+                        <p>
+                            <a
+                                href={`mailto:${contact.email}`}
+                                className="underline hover:text-cream"
+                            >
+                                {contact.email}
+                            </a>
+                        </p>
+                    )}
                     {socials.length > 0 && (
                         <p className="flex gap-4 pt-1">
                             {socials.map((item) => (
@@ -117,7 +158,7 @@ export default function SiteFooter() {
                                     key={item.label}
                                     href={item.href}
                                     target="_blank"
-                                    rel="noreferrer"
+                                    rel="noopener noreferrer"
                                     className="underline hover:text-cream"
                                 >
                                     {item.label}
@@ -132,7 +173,7 @@ export default function SiteFooter() {
             </div>
 
             <div className="border-t border-forest-800">
-                <p className="mx-auto max-w-6xl px-4 py-5 text-xs text-forest-200">
+                <p className="mx-auto max-w-6xl px-4 py-5 text-xs text-forest-200 sm:px-6">
                     © {new Date().getFullYear()} Desa Wisata Pasirnanjung
                     Geulis. {t('footer.rights')}
                 </p>

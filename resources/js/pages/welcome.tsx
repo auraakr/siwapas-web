@@ -1,13 +1,15 @@
 import { Head, usePage } from '@inertiajs/react';
-import Activities from '@/components/landing/activities';
 import About from '@/components/landing/about';
+import Activities from '@/components/landing/activities';
 import Destinations from '@/components/landing/destinations';
 import Events from '@/components/landing/events';
 import FacilitiesBanner from '@/components/landing/facilities-banner';
 import FinalCta from '@/components/landing/final-cta';
 import Hero from '@/components/landing/hero';
+import Partners from '@/components/landing/partners';
 import Products from '@/components/landing/products';
 import Stories from '@/components/landing/stories';
+import Testimonials from '@/components/landing/testimonials';
 import VisitInfo from '@/components/landing/visit-info';
 import { useTranslation } from '@/lib/i18n';
 import type { LandingProps } from '@/types/landing';
@@ -53,6 +55,7 @@ export default function Welcome({
                     property="og:locale"
                     content={locale === 'en' ? 'en_US' : 'id_ID'}
                 />
+                <meta name="twitter:card" content="summary_large_image" />
                 {images.hero && (
                     <meta property="og:image" content={images.hero} />
                 )}
@@ -63,6 +66,7 @@ export default function Welcome({
 
             <Hero image={images.hero} videoUrl={video_url} />
             <About image={images.about} address={contact.address} />
+            <Partners />
             <Destinations destinations={destinations} />
             <Activities
                 activities={activities}
@@ -72,6 +76,7 @@ export default function Welcome({
             <Products products={products} />
             <Events items={events} />
             <Stories articles={articles} />
+            <Testimonials />
             <VisitInfo contact={contact} faqs={faqs} />
             <FinalCta whatsappUrl={contact.whatsapp_url} />
         </>

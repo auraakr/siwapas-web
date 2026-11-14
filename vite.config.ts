@@ -18,6 +18,7 @@ export default defineConfig({
                 }),
                 bunny('Fraunces', {
                     weights: [500, 600, 700],
+                    styles: ['normal', 'italic'],
                 }),
             ],
         }),

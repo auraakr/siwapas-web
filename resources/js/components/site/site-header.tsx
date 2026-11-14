@@ -2,7 +2,6 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     ChevronDown,
     Clock,
-    Leaf,
     Mail,
     MapPin,
     Menu,
@@ -167,12 +166,28 @@ export default function SiteHeader() {
         };
     }, []);
 
+    const phoneHref = contact.phone
+        ? `tel:${contact.phone.replace(/[^\d+]/g, '')}`
+        : undefined;
+
     const topBarItems = [
-        contact.address && { icon: MapPin, text: contact.address },
+        contact.address && {
+            icon: MapPin,
+            text: contact.address,
+            href: contact.maps_url,
+        },
         contact.hours && { icon: Clock, text: contact.hours },
-        contact.phone && { icon: Phone, text: contact.phone },
-        contact.email && { icon: Mail, text: contact.email },
-    ].filter(Boolean) as { icon: typeof MapPin; text: string }[];
+        contact.phone && { icon: Phone, text: contact.phone, href: phoneHref },
+        contact.email && {
+            icon: Mail,
+            text: contact.email,
+            href: `mailto:${contact.email}`,
+        },
+    ].filter(Boolean) as {
+        icon: typeof MapPin;
+        text: string;
+        href?: string;
+    }[];
 
     const openItem = navigation.find((item) => item.label === openMenu);
 
@@ -188,33 +203,58 @@ export default function SiteHeader() {
             {topBarItems.length > 0 && (
                 <div className="hidden bg-forest-900 text-xs text-forest-100 md:block">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2">
-                        {topBarItems.map(({ icon: Icon, text }) => (
-                            <span
-                                key={text}
-                                className="flex items-center gap-1.5"
-                            >
-                                <Icon className="size-3.5 opacity-80" />
-                                {text}
-                            </span>
-                        ))}
+                        {topBarItems.map(({ icon: Icon, text, href }) => {
+                            const inner = (
+                                <>
+                                    <Icon
+                                        className="size-3.5 opacity-80"
+                                        aria-hidden="true"
+                                    />
+                                    {text}
+                                </>
+                            );
+
+                            return href ? (
+                                <a
+                                    key={text}
+                                    href={href}
+                                    target={
+                                        href.startsWith('http')
+                                            ? '_blank'
+                                            : undefined
+                                    }
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 transition hover:text-cream"
+                                >
+                                    {inner}
+                                </a>
+                            ) : (
+                                <span
+                                    key={text}
+                                    className="flex items-center gap-1.5"
+                                >
+                                    {inner}
+                                </span>
+                            );
+                        })}
                     </div>
                 </div>
             )}
 
             <div className="relative border-b border-forest-100 bg-cream/95 backdrop-blur">
                 <div className="mx-auto flex max-w-6xl items-center gap-8 px-4 py-3">
-                    <Link href={home()} className="flex items-center gap-3">
-                        <span className="flex size-10 items-center justify-center rounded-full bg-forest-800 text-cream">
-                            <Leaf className="size-5" />
-                        </span>
-                        <span className="leading-tight">
-                            <span className="block font-serif text-lg font-semibold tracking-wide text-forest-900">
-                                SIWAPAS
-                            </span>
-                            <span className="block text-[10px] tracking-[0.18em] text-forest-700 uppercase">
-                                Desa Wisata Pasirnanjung Geulis
-                            </span>
-                        </span>
+                    <Link
+                        href={home()}
+                        aria-label="SIWAPAS Pasirnanjung Geulis"
+                        className="flex shrink-0 items-center"
+                    >
+                        <img
+                            src="/images/brand/logo-navbar.png"
+                            alt=""
+                            width={300}
+                            height={101}
+                            className="h-11 w-auto md:h-12"
+                        />
                     </Link>
 
                     <nav
@@ -285,7 +325,7 @@ export default function SiteHeader() {
                         )}
                         <Link
                             href={facilities.index()}
-                            className="hidden rounded-md bg-clay px-6 py-2.5 text-xs font-semibold tracking-wide text-white uppercase transition hover:bg-clay-dark md:block"
+                            className="hidden rounded-md bg-clay-dark px-6 py-2.5 text-xs font-semibold tracking-wide text-white uppercase transition hover:bg-clay md:block"
                         >
                             {t('header.book')}
                         </Link>
@@ -317,7 +357,7 @@ export default function SiteHeader() {
                         <div className="mx-auto flex max-w-6xl gap-20 px-4 py-10">
                             {openItem.columns.map((column) => (
                                 <div key={column.heading} className="min-w-48">
-                                    <h3 className="mb-5 font-serif text-sm font-semibold tracking-[0.2em] text-clay uppercase">
+                                    <h3 className="mb-5 font-serif text-sm font-semibold tracking-[0.2em] text-clay-dark uppercase">
                                         {t(column.heading)}
                                     </h3>
                                     <ul className="space-y-3">
@@ -357,7 +397,7 @@ export default function SiteHeader() {
                                         <div className="space-y-4 pb-4 pl-2">
                                             {item.columns.map((column) => (
                                                 <div key={column.heading}>
-                                                    <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-clay uppercase">
+                                                    <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-clay-dark uppercase">
                                                         {t(column.heading)}
                                                     </p>
                                                     <ul className="space-y-2">
@@ -412,7 +452,7 @@ export default function SiteHeader() {
                                         className={cn(
                                             'rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wider uppercase',
                                             code === locale
-                                                ? 'border-clay bg-clay text-white'
+                                                ? 'border-clay-dark bg-clay-dark text-white'
                                                 : 'border-forest-200 text-forest-900',
                                         )}
                                     >
@@ -431,7 +471,7 @@ export default function SiteHeader() {
                             )}
                             <Link
                                 href={facilities.index()}
-                                className="mt-2 rounded-md bg-clay px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-white uppercase"
+                                className="mt-2 rounded-md bg-clay-dark px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-white uppercase"
                             >
                                 {t('header.book')}
                             </Link>

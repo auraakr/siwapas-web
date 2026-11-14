@@ -1,0 +1,1784 @@
+﻿
+===== \routes\web.php =====
+<?php
+
+use App\Http\Controllers\Admin\EventController as AdminEventController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\PaymentProofController as AdminPaymentProofController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Public\EventController;
+use App\Http\Controllers\Public\EventRegistrationController;
+use App\Http\Controllers\Public\FacilityController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\LocaleController;
+use App\Http\Controllers\Public\OrderController;
+use App\Http\Controllers\Public\PaymentProofController;
+use App\Http\Controllers\Public\ReservationController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', HomeController::class)->name('home');
+Route::post('bahasa', [LocaleController::class, 'update'])->name('locale.update');
+
+Route::get('fasilitas', [FacilityController::class, 'index'])->name('facilities.index');
+Route::get('fasilitas/{facility:slug}', [FacilityController::class, 'show'])->name('facilities.show');
+Route::post('fasilitas/{facility:slug}/reservasi', [ReservationController::class, 'store'])
+    ->middleware('throttle:public-write')
+    ->name('reservations.store');
+
+Route::get('acara', [EventController::class, 'index'])->name('events.index');
+Route::get('acara/{event:slug}', [EventController::class, 'show'])->name('events.show');
+Route::post('acara/{event:slug}/daftar', [EventRegistrationController::class, 'store'])
+    ->middleware('throttle:public-write')
+    ->name('events.register');
+
+Route::get('pesanan/{order:access_token}', [OrderController::class, 'show'])->name('orders.show');
+Route::post('pesanan/{order:access_token}/bukti', [PaymentProofController::class, 'store'])
+    ->middleware('throttle:public-write')
+    ->name('orders.proof.store');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::inertia('dashboard', 'dashboard')->middleware('admin.panel')->name('dashboard');
+});
+
+Route::middleware(['auth', 'verified', 'admin'])->prefix('kelola')->name('admin.')->group(function () {
+    Route::get('pembayaran', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('pembayaran/{payment}/verifikasi', [PaymentController::class, 'verify'])->name('payments.verify');
+    Route::post('pembayaran/{payment}/tolak', [PaymentController::class, 'reject'])->name('payments.reject');
+    Route::get('metode-pembayaran', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
+    Route::post('metode-pembayaran', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+    Route::patch('metode-pembayaran/{paymentMethod}', [PaymentMethodController::class, 'toggle'])->name('payment-methods.toggle');
+    Route::delete('metode-pembayaran/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
+    Route::get('reservasi', [AdminReservationController::class, 'index'])->name('reservations.index');
+    Route::get('reservasi/{reservation}', [AdminReservationController::class, 'show'])->name('reservations.show');
+    Route::post('reservasi/{reservation}/batal', [AdminReservationController::class, 'cancel'])->name('reservations.cancel');
+
+    Route::get('acara', [AdminEventController::class, 'index'])->name('events.index');
+    Route::get('acara/baru', [AdminEventController::class, 'create'])->name('events.create');
+    Route::post('acara', [AdminEventController::class, 'store'])->name('events.store');
+    Route::get('acara/{event}', [AdminEventController::class, 'edit'])->name('events.edit');
+    Route::put('acara/{event}', [AdminEventController::class, 'update'])->name('events.update');
+    Route::post('acara/{event}/pendaftaran/{registration}/batal', [AdminEventController::class, 'cancelRegistration'])->name('events.registrations.cancel');
+
+    Route::get('bukti/{proof}', [AdminPaymentProofController::class, 'show'])
+        ->middleware('signed')
+        ->name('proofs.show');
+});
+
+require __DIR__.'/settings.php';
+
+
+===== \app\Domain\Content\Actions\GetLandingPageContent.php =====
+<?php
+
+namespace App\Domain\Content\Actions;
+
+use App\Domain\Catalog\Models\Facility;
+use App\Domain\Content\Enums\DestinationType;
+use App\Domain\Content\Enums\PublishStatus;
+use App\Domain\Content\Models\Article;
+use App\Domain\Content\Models\Destination;
+use App\Domain\Content\Models\Faq;
+use App\Domain\Content\Models\LocalProduct;
+use App\Domain\Content\Services\SiteContact;
+use App\Domain\Event\Enums\EventStatus;
+use App\Domain\Event\Models\Event;
+use Spatie\MediaLibrary\HasMedia;
+
+/**
+ * Everything the public landing page shows, as plain arrays for Inertia.
+ */
+class GetLandingPageContent
+{
+    public function __construct(private SiteContact $siteContact) {}
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function handle(): array
+    {
+        return [
+            'images' => [
+                'hero' => $this->staticImage('hero'),
+                'about' => $this->staticImage('about'),
+            ],
+            'video_url' => config('siwapas.landing.video_url') ?: null,
+            'destinations' => $this->destinations(DestinationType::Destination, 4),
+            'activities' => $this->destinations(DestinationType::Activity, 3),
+            'facilities' => $this->facilities(),
+            'products' => $this->products(),
+            'events' => $this->events(),
+            'articles' => $this->articles(),
+            'faqs' => $this->faqs(),
+        ];
+    }
+
+    /**
+     * A photo dropped into public/images/landing (hero.jpg, about.jpg, ...), if present.
+     */
+    private function staticImage(string $name): ?string
+    {
+        foreach (['jpg', 'jpeg', 'webp', 'png'] as $extension) {
+            if (is_file(public_path("images/landing/{$name}.{$extension}"))) {
+                return asset("images/landing/{$name}.{$extension}");
+            }
+        }
+
+        return null;
+    }
+
+    private function imageOf(HasMedia $model): ?string
+    {
+        return $model->getFirstMediaUrl('default') ?: null;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function destinations(DestinationType $type, int $limit): array
+    {
+        return Destination::query()
+            ->with('media')
+            ->where('type', $type)
+            ->where('status', PublishStatus::Published)
+            ->orderByDesc('is_featured')
+            ->orderBy('sort_order')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Destination $destination): array => [
+                'id' => $destination->id,
+                'name' => $destination->name,
+                'summary' => $destination->summary,
+                'address' => $destination->address,
+                'image' => $this->imageOf($destination),
+                'is_featured' => $destination->is_featured,
+                'requires_reservation' => $destination->requires_reservation,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function facilities(): array
+    {
+        return Facility::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->limit(6)
+            ->get()
+            ->map(fn (Facility $facility): array => [
+                'slug' => $facility->slug,
+                'name' => $facility->name,
+                'capacity' => $facility->capacity,
+                'base_price' => $facility->base_price,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function products(): array
+    {
+        return LocalProduct::query()
+            ->with('media')
+            ->where('is_published', true)
+            ->orderBy('sort_order')
+            ->limit(6)
+            ->get()
+            ->map(function (LocalProduct $product): array {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'maker' => $product->maker_name,
+                    'description' => $product->description,
+                    'image' => $this->imageOf($product),
+                    'whatsapp_url' => $this->siteContact->whatsappUrl($product->whatsapp_number),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function events(): array
+    {
+        return Event::query()
+            ->where('status', EventStatus::Published)
+            ->where('starts_at', '>=', now())
+            ->orderBy('starts_at')
+            ->limit(3)
+            ->get()
+            ->map(fn (Event $event): array => [
+                'slug' => $event->slug,
+                'title' => $event->title,
+                'starts_at' => $event->starts_at->toIso8601String(),
+                'location_name' => $event->location_name,
+                'fee' => $event->fee,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function articles(): array
+    {
+        return Article::query()
+            ->with('media')
+            ->where('status', PublishStatus::Published)
+            ->where('published_at', '<=', now())
+            ->latest('published_at')
+            ->limit(3)
+            ->get()
+            ->map(fn (Article $article): array => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'excerpt' => $article->excerpt,
+                'category' => $article->category->value,
+                'author' => $article->author_name,
+                'published_at' => $article->published_at?->toIso8601String(),
+                'image' => $this->imageOf($article),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, string>>
+     */
+    private function faqs(): array
+    {
+        return Faq::query()
+            ->where('is_published', true)
+            ->orderBy('sort_order')
+            ->limit(6)
+            ->get()
+            ->map(fn (Faq $faq): array => [
+                'question' => $faq->question,
+                'answer' => $faq->answer,
+            ])
+            ->values()
+            ->all();
+    }
+}
+
+
+===== \app\Domain\Content\Models\ContactMessage.php =====
+<?php
+
+namespace App\Domain\Content\Models;
+
+use Carbon\CarbonImmutable;
+use Database\Factories\ContactMessageFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $phone
+ * @property string|null $email
+ * @property string|null $subject
+ * @property string $message
+ * @property CarbonImmutable|null $handled_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ */
+#[Fillable(['name', 'phone', 'email', 'subject', 'message', 'handled_at'])]
+#[UseFactory(ContactMessageFactory::class)]
+
+class ContactMessage extends Model
+{
+    /** @use HasFactory<ContactMessageFactory> */
+    use HasFactory;
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'handled_at' => 'datetime',
+        ];
+    }
+}
+
+
+===== \app\Domain\Content\Models\Destination.php =====
+<?php
+
+namespace App\Domain\Content\Models;
+
+use App\Domain\Content\Enums\DestinationType;
+use App\Domain\Content\Enums\PublishStatus;
+use Carbon\CarbonImmutable;
+use Database\Factories\DestinationFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
+
+/**
+ * @property int $id
+ * @property string $slug
+ * @property DestinationType $type
+ * @property string $name
+ * @property string|null $summary
+ * @property string|null $description
+ * @property string|null $address
+ * @property string|null $latitude
+ * @property string|null $longitude
+ * @property array<string, mixed>|null $opening_hours
+ * @property array<int, string>|null $facilities
+ * @property array<int, string>|null $rules
+ * @property bool $requires_reservation
+ * @property bool $is_featured
+ * @property int $sort_order
+ * @property PublishStatus $status
+ * @property string|null $video_url
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ */
+#[Fillable(['slug', 'type', 'name', 'summary', 'description', 'address', 'latitude', 'longitude', 'opening_hours', 'facilities', 'rules', 'requires_reservation', 'is_featured', 'sort_order', 'status', 'video_url'])]
+#[UseFactory(DestinationFactory::class)]
+
+class Destination extends Model implements HasMedia
+{
+    /** @use HasFactory<DestinationFactory> */
+    use HasFactory, HasTranslations, InteractsWithMedia;
+
+    /**
+     * @var list<string>
+     */
+    public array $translatable = ['name', 'summary', 'description'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => DestinationType::class,
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'opening_hours' => 'array',
+            'facilities' => 'array',
+            'rules' => 'array',
+            'requires_reservation' => 'boolean',
+            'is_featured' => 'boolean',
+            'status' => PublishStatus::class,
+        ];
+    }
+}
+
+
+===== \app\Domain\Content\Models\GalleryItem.php =====
+<?php
+
+namespace App\Domain\Content\Models;
+
+use App\Domain\Content\Enums\GalleryItemType;
+use Carbon\CarbonImmutable;
+use Database\Factories\GalleryItemFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
+
+/**
+ * @property int $id
+ * @property GalleryItemType $type
+ * @property string|null $title
+ * @property string|null $youtube_url
+ * @property string|null $category
+ * @property int $sort_order
+ * @property bool $is_published
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ */
+#[Fillable(['type', 'title', 'youtube_url', 'category', 'sort_order', 'is_published'])]
+#[UseFactory(GalleryItemFactory::class)]
+
+class GalleryItem extends Model implements HasMedia
+{
+    /** @use HasFactory<GalleryItemFactory> */
+    use HasFactory, HasTranslations, InteractsWithMedia;
+
+    /**
+     * @var list<string>
+     */
+    public array $translatable = ['title'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => GalleryItemType::class,
+            'is_published' => 'boolean',
+        ];
+    }
+}
+
+
+===== \app\Domain\Content\Models\Page.php =====
+<?php
+
+namespace App\Domain\Content\Models;
+
+use App\Domain\Content\Enums\PublishStatus;
+use Carbon\CarbonImmutable;
+use Database\Factories\PageFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
+
+/**
+ * @property int $id
+ * @property string $key
+ * @property string $slug
+ * @property string $title
+ * @property string|null $body
+ * @property string|null $seo_title
+ * @property string|null $seo_description
+ * @property PublishStatus $status
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ */
+#[Fillable(['key', 'slug', 'title', 'body', 'seo_title', 'seo_description', 'status'])]
+#[UseFactory(PageFactory::class)]
+
+class Page extends Model
+{
+    /** @use HasFactory<PageFactory> */
+    use HasFactory, HasTranslations;
+
+    /**
+     * @var list<string>
+     */
+    public array $translatable = ['title', 'body', 'seo_title', 'seo_description'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => PublishStatus::class,
+        ];
+    }
+}
+
+
+===== \app\Domain\Content\Models\TeamMember.php =====
+<?php
+
+namespace App\Domain\Content\Models;
+
+use Carbon\CarbonImmutable;
+use Database\Factories\TeamMemberFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
+
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $role
+ * @property string|null $bio
+ * @property int $sort_order
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ */
+#[Fillable(['name', 'role', 'bio', 'sort_order'])]
+#[UseFactory(TeamMemberFactory::class)]
+
+class TeamMember extends Model implements HasMedia
+{
+    /** @use HasFactory<TeamMemberFactory> */
+    use HasFactory, HasTranslations, InteractsWithMedia;
+
+    /**
+     * @var list<string>
+     */
+    public array $translatable = ['role', 'bio'];
+}
+
+
+===== \app\Filament\Resources\DestinationResource.php =====
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Domain\Content\Models\Destination;
+use App\Filament\Resources\DestinationResource\Pages;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class DestinationResource extends Resource
+{
+    use Translatable;
+
+    protected static ?string $model = Destination::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+
+    protected static ?string $navigationGroup = 'Konten';
+
+    protected static ?string $navigationLabel = 'Destinasi & Aktivitas';
+
+    protected static ?string $modelLabel = 'destinasi / aktivitas';
+
+    protected static ?string $pluralModelLabel = 'destinasi & aktivitas';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function form(Form $form): Form
+    {
+        return $form->schema([
+            Forms\Components\Section::make('Informasi')->columns(2)->schema([
+                Forms\Components\TextInput::make('name')->label('Nama')->required()->maxLength(255),
+                Forms\Components\Select::make('type')
+                    ->label('Jenis')
+                    ->options(['destination' => 'Destinasi', 'activity' => 'Aktivitas'])
+                    ->default('destination')
+                    ->required(),
+                Forms\Components\Textarea::make('summary')->label('Ringkasan')->columnSpanFull(),
+                Forms\Components\RichEditor::make('description')->label('Deskripsi')->columnSpanFull(),
+                Forms\Components\SpatieMediaLibraryFileUpload::make('images')
+                    ->label('Foto')
+                    ->collection('default')
+                    ->image()
+                    ->multiple()
+                    ->reorderable()
+                    ->maxSize(5120)
+                    ->columnSpanFull(),
+                Forms\Components\TextInput::make('video_url')->label('Tautan video')->url()->maxLength(255),
+            ]),
+            Forms\Components\Section::make('Lokasi & operasional')->columns(2)->schema([
+                Forms\Components\TextInput::make('address')->label('Alamat')->maxLength(255)->columnSpanFull(),
+                Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric()->minValue(-90)->maxValue(90),
+                Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric()->minValue(-180)->maxValue(180),
+                Forms\Components\KeyValue::make('opening_hours')
+                    ->label('Jam buka')
+                    ->keyLabel('Hari')
+                    ->valueLabel('Jam')
+                    ->columnSpanFull(),
+                Forms\Components\TagsInput::make('facilities')->label('Fasilitas'),
+                Forms\Components\TagsInput::make('rules')->label('Aturan'),
+            ]),
+            Forms\Components\Section::make('Pengaturan')->columns(4)->schema([
+                Forms\Components\Select::make('status')
+                    ->label('Status')
+                    ->options(['draft' => 'Draf', 'published' => 'Terbit'])
+                    ->default('draft')
+                    ->required(),
+                Forms\Components\TextInput::make('slug')->label('Slug URL')->required()->alphaDash()->unique(ignoreRecord: true),
+                Forms\Components\TextInput::make('sort_order')->label('Urutan')->numeric()->default(0)->required(),
+                Forms\Components\Group::make([
+                    Forms\Components\Toggle::make('requires_reservation')->label('Perlu reservasi'),
+                    Forms\Components\Toggle::make('is_featured')->label('Unggulan'),
+                ]),
+            ]),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\SpatieMediaLibraryImageColumn::make('images')->label('Foto')->collection('default')->limit(1)->circular(),
+                Tables\Columns\TextColumn::make('name')->label('Nama')->searchable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Jenis')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => $state->value === 'activity' ? 'Aktivitas' : 'Destinasi'),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => $state->value === 'published' ? 'Terbit' : 'Draf')
+                    ->color(fn ($state): string => $state->value === 'published' ? 'success' : 'gray'),
+                Tables\Columns\IconColumn::make('is_featured')->label('Unggulan')->boolean(),
+                Tables\Columns\TextColumn::make('sort_order')->label('Urutan')->sortable(),
+            ])
+            ->defaultSort('sort_order')
+            ->filters([
+                Tables\Filters\SelectFilter::make('type')
+                    ->label('Jenis')
+                    ->options(['destination' => 'Destinasi', 'activity' => 'Aktivitas']),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options(['draft' => 'Draf', 'published' => 'Terbit']),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListDestinations::route('/'),
+            'create' => Pages\CreateDestination::route('/create'),
+            'edit' => Pages\EditDestination::route('/{record}/edit'),
+        ];
+    }
+}
+
+
+===== \app\Filament\Resources\FaqResource.php =====
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Domain\Content\Models\Faq;
+use App\Filament\Resources\FaqResource\Pages;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class FaqResource extends Resource
+{
+    use Translatable;
+
+    protected static ?string $model = Faq::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
+
+    protected static ?string $navigationGroup = 'Konten';
+
+    protected static ?string $navigationLabel = 'Tanya Jawab (FAQ)';
+
+    protected static ?string $modelLabel = 'pertanyaan';
+
+    protected static ?string $pluralModelLabel = 'tanya jawab';
+
+    protected static ?int $navigationSort = 5;
+
+    public static function form(Form $form): Form
+    {
+        return $form->schema([
+            Forms\Components\TextInput::make('question')->label('Pertanyaan')->required()->maxLength(255)->columnSpanFull(),
+            Forms\Components\Textarea::make('answer')->label('Jawaban')->required()->rows(5)->columnSpanFull(),
+            Forms\Components\TextInput::make('sort_order')->label('Urutan')->numeric()->default(0)->required(),
+            Forms\Components\Toggle::make('is_published')->label('Tampilkan di beranda')->default(true),
+        ])->columns(2);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('question')->label('Pertanyaan')->searchable()->limit(70),
+                Tables\Columns\IconColumn::make('is_published')->label('Tampil')->boolean(),
+                Tables\Columns\TextColumn::make('sort_order')->label('Urutan')->sortable(),
+            ])
+            ->defaultSort('sort_order')
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListFaqs::route('/'),
+            'create' => Pages\CreateFaq::route('/create'),
+            'edit' => Pages\EditFaq::route('/{record}/edit'),
+        ];
+    }
+}
+
+
+===== \app\Http\Controllers\Admin\EventController.php =====
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Domain\Event\Actions\CancelEventRegistration;
+use App\Domain\Event\Actions\SaveEvent;
+use App\Domain\Event\Enums\EventStatus;
+use App\Domain\Event\Models\Event;
+use App\Domain\Event\Models\EventRegistration;
+use App\Domain\Payment\Exceptions\InvalidOrderTransition;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\CancelOrderRequest;
+use App\Http\Requests\Admin\SaveEventRequest;
+use Carbon\CarbonInterface;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class EventController extends Controller
+{
+    public function index(): Response
+    {
+        return Inertia::render('admin/events/index', [
+            'events' => Event::query()
+                ->withSum(['registrations as taken' => fn ($query) => $query->where('is_active', true)], 'participant_count')
+                ->latest('starts_at')
+                ->paginate(15)
+                ->through(fn (Event $event): array => [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'status' => $event->status->value,
+                    'starts_at' => $event->starts_at->toIso8601String(),
+                    'fee' => $event->fee,
+                    'quota' => $event->quota,
+                    'taken' => (int) $event->getAttribute('taken'),
+                ]),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('admin/events/form', [
+            'event' => null,
+            'registrations' => [],
+            'statuses' => array_map(fn (EventStatus $status): string => $status->value, EventStatus::cases()),
+        ]);
+    }
+
+    public function store(SaveEventRequest $request, SaveEvent $saveEvent): RedirectResponse
+    {
+        $event = $saveEvent->handle(null, $request->validated());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Acara ditambahkan.']);
+
+        return to_route('admin.events.edit', $event);
+    }
+
+    public function edit(Event $event): Response
+    {
+        $event->load('registrations.participants', 'registrations.order');
+
+        return Inertia::render('admin/events/form', [
+            'event' => [
+                'id' => $event->id,
+                'slug' => $event->slug,
+                'title_id' => $event->getTranslation('title', 'id', false),
+                'title_en' => $event->getTranslation('title', 'en', false),
+                'description_id' => $event->getTranslation('description', 'id', false),
+                'description_en' => $event->getTranslation('description', 'en', false),
+                'requirements_id' => $event->getTranslation('requirements', 'id', false),
+                'requirements_en' => $event->getTranslation('requirements', 'en', false),
+                'organizer' => $event->organizer,
+                'location_name' => $event->location_name,
+                'address' => $event->address,
+                'latitude' => $event->latitude,
+                'longitude' => $event->longitude,
+                'starts_at' => $this->forInput($event->starts_at),
+                'ends_at' => $this->forInput($event->ends_at),
+                'fee' => $event->fee,
+                'quota' => $event->quota,
+                'registration_opens_at' => $this->forInput($event->registration_opens_at),
+                'registration_closes_at' => $this->forInput($event->registration_closes_at),
+                'status' => $event->status->value,
+            ],
+            'registrations' => $event->registrations->map(fn (EventRegistration $registration): array => [
+                'id' => $registration->id,
+                'code' => $registration->registration_code,
+                'is_active' => $registration->is_active,
+                'participant_count' => $registration->participant_count,
+                'participants' => $registration->participants->pluck('name')->all(),
+                'order_code' => $registration->order?->code,
+                'order_status' => $registration->order?->status->value,
+                'contact' => $registration->order ? "{$registration->order->customer_name} ({$registration->order->customer_phone})" : null,
+            ])->values(),
+            'statuses' => array_map(fn (EventStatus $status): string => $status->value, EventStatus::cases()),
+        ]);
+    }
+
+    public function update(SaveEventRequest $request, Event $event, SaveEvent $saveEvent): RedirectResponse
+    {
+        $saveEvent->handle($event, $request->validated());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Acara diperbarui.']);
+
+        return back();
+    }
+
+    public function cancelRegistration(CancelOrderRequest $request, Event $event, EventRegistration $registration, CancelEventRegistration $cancelEventRegistration): RedirectResponse
+    {
+        abort_unless($registration->event_id === $event->id, 404);
+
+        try {
+            $cancelEventRegistration->handle($registration, $request->user(), $request->string('reason')->toString());
+        } catch (InvalidOrderTransition) {
+            return back()->withErrors(['reason' => 'Pendaftaran ini tidak dapat dibatalkan lagi.']);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Pendaftaran dibatalkan.']);
+
+        return back();
+    }
+
+    private function forInput(?CarbonInterface $value): ?string
+    {
+        return $value?->copy()->setTimezone(config('siwapas.display_timezone'))->format('Y-m-d\TH:i');
+    }
+}
+
+
+===== \app\Http\Controllers\Public\EventController.php =====
+<?php
+
+namespace App\Http\Controllers\Public;
+
+use App\Domain\Event\Enums\EventStatus;
+use App\Domain\Event\Models\Event;
+use App\Http\Controllers\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class EventController extends Controller
+{
+    public function index(): Response
+    {
+        return Inertia::render('public/events/index', [
+            'events' => Event::query()
+                ->where('status', EventStatus::Published)
+                ->where('starts_at', '>=', now()->startOfDay())
+                ->orderBy('starts_at')
+                ->get()
+                ->map(fn (Event $event): array => [
+                    'slug' => $event->slug,
+                    'title' => $event->title,
+                    'starts_at' => $event->starts_at->toIso8601String(),
+                    'location_name' => $event->location_name,
+                    'fee' => $event->fee,
+                ]),
+        ]);
+    }
+
+    public function show(Event $event): Response
+    {
+        abort_unless($event->status === EventStatus::Published, 404);
+
+        $taken = (int) $event->registrations()->where('is_active', true)->sum('participant_count');
+
+        return Inertia::render('public/events/show', [
+            'event' => [
+                'slug' => $event->slug,
+                'title' => $event->title,
+                'description' => $event->description,
+                'organizer' => $event->organizer,
+                'location_name' => $event->location_name,
+                'address' => $event->address,
+                'starts_at' => $event->starts_at->toIso8601String(),
+                'ends_at' => $event->ends_at?->toIso8601String(),
+                'fee' => $event->fee,
+                'requirements' => $event->requirements,
+                'remaining_quota' => $event->quota === null ? null : max(0, $event->quota - $taken),
+            ],
+            'registration_code' => session('registration_code'),
+        ]);
+    }
+}
+
+
+===== \app\Http\Controllers\Public\FacilityController.php =====
+<?php
+
+namespace App\Http\Controllers\Public;
+
+use App\Domain\Booking\Models\Reservation;
+use App\Domain\Catalog\Models\Facility;
+use App\Http\Controllers\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class FacilityController extends Controller
+{
+    public function index(): Response
+    {
+        return Inertia::render('public/facilities/index', [
+            'facilities' => Facility::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn (Facility $facility): array => [
+                    'slug' => $facility->slug,
+                    'name' => $facility->name,
+                    'description' => $facility->description,
+                    'capacity' => $facility->capacity,
+                    'base_price' => $facility->base_price,
+                ]),
+        ]);
+    }
+
+    public function show(Facility $facility): Response
+    {
+        abort_unless($facility->is_active, 404);
+
+        $today = now(config('siwapas.display_timezone'))->toDateString();
+
+        return Inertia::render('public/facilities/show', [
+            'facility' => [
+                'slug' => $facility->slug,
+                'name' => $facility->name,
+                'description' => $facility->description,
+                'capacity' => $facility->capacity,
+                'base_price' => $facility->base_price,
+                'rules' => $facility->rules,
+            ],
+            'unavailable' => [
+                ...Reservation::query()
+                    ->where('facility_id', $facility->id)
+                    ->where('is_active', true)
+                    ->whereDate('check_out', '>', $today)
+                    ->get()
+                    ->map(fn (Reservation $reservation): array => [
+                        'from' => $reservation->check_in->toDateString(),
+                        'to' => $reservation->check_out->toDateString(),
+                    ]),
+            ],
+        ]);
+    }
+}
+
+
+===== \app\Http\Controllers\Public\HomeController.php =====
+<?php
+
+namespace App\Http\Controllers\Public;
+
+use App\Domain\Content\Actions\GetLandingPageContent;
+use App\Http\Controllers\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class HomeController extends Controller
+{
+    public function __invoke(GetLandingPageContent $getLandingPageContent): Response
+    {
+        return Inertia::render('welcome', $getLandingPageContent->handle());
+    }
+}
+
+
+===== \app\Http\Requests\Public\StoreEventRegistrationRequest.php =====
+<?php
+
+namespace App\Http\Requests\Public;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreEventRegistrationRequest extends FormRequest
+{
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public function rules(): array
+    {
+        return [
+            'customer_name' => ['required', 'string', 'max:255'],
+            'customer_phone' => ['required', 'string', 'regex:/^(\+62|62|0)8[0-9]{7,12}$/'],
+            'customer_email' => ['nullable', 'email', 'max:255'],
+            'participants' => ['required', 'array', 'min:1', 'max:10'],
+            'participants.*.name' => ['required', 'string', 'max:255'],
+            'participants.*.phone' => ['nullable', 'string', 'max:30'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'customer_phone.regex' => 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx.',
+            'participants.*.name.required' => 'Nama peserta wajib diisi.',
+        ];
+    }
+}
+
+
+===== \app\Providers\AppServiceProvider.php =====
+<?php
+
+namespace App\Providers;
+
+use App\Http\Responses\AdminLogoutResponse;
+use Carbon\CarbonImmutable;
+use Filament\Http\Responses\Auth\Contracts\LogoutResponse;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
+use Spatie\Translatable\Translatable;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        $this->app->bind(LogoutResponse::class, AdminLogoutResponse::class);
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        $this->configureDefaults();
+        $this->configureRateLimiting();
+        $this->configureTranslationFallback();
+    }
+
+    /**
+     * Indonesian is the primary content language: when a translation is missing for the
+     * active locale, show Indonesian, and then any other language that has been written.
+     * The admin forms read raw translations, so this never fills the English fields.
+     */
+    protected function configureTranslationFallback(): void
+    {
+        $this->app->make(Translatable::class)->fallback(fallbackLocale: 'id', fallbackAny: true);
+    }
+
+    /**
+     * Configure rate limiters for public write endpoints.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('public-write', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+    }
+
+    /**
+     * Configure default behaviors for production-ready applications.
+     */
+    protected function configureDefaults(): void
+    {
+        Date::use(CarbonImmutable::class);
+
+        DB::prohibitDestructiveCommands(
+            app()->isProduction(),
+        );
+
+        Password::defaults(fn (): ?Password => app()->isProduction()
+            ? Password::min(12)
+                ->mixedCase()
+                ->letters()
+                ->numbers()
+                ->symbols()
+                ->uncompromised()
+            : null,
+        );
+    }
+}
+
+
+===== \database\migrations\2026_11_06_000001_create_pages_table.php =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('pages', function (Blueprint $table) {
+            $table->id();
+            $table->string('key')->unique();
+            $table->string('slug')->unique();
+            $table->json('title');
+            $table->json('body')->nullable();
+            $table->json('seo_title')->nullable();
+            $table->json('seo_description')->nullable();
+            $table->string('status')->default('draft')->index();
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('pages');
+    }
+};
+
+
+===== \database\migrations\2026_11_06_000002_create_destinations_table.php =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('destinations', function (Blueprint $table) {
+            $table->id();
+            $table->string('slug')->unique();
+            $table->string('type')->index();
+            $table->json('name');
+            $table->json('summary')->nullable();
+            $table->json('description')->nullable();
+            $table->string('address')->nullable();
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
+            $table->json('opening_hours')->nullable();
+            $table->json('facilities')->nullable();
+            $table->json('rules')->nullable();
+            $table->boolean('requires_reservation')->default(false);
+            $table->boolean('is_featured')->default(false);
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->string('status')->default('draft')->index();
+            $table->string('video_url')->nullable();
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('destinations');
+    }
+};
+
+
+===== \database\migrations\2026_11_06_000004_create_gallery_items_table.php =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('gallery_items', function (Blueprint $table) {
+            $table->id();
+            $table->string('type');
+            $table->json('title')->nullable();
+            $table->string('youtube_url')->nullable();
+            $table->string('category')->nullable()->index();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->boolean('is_published')->default(true);
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('gallery_items');
+    }
+};
+
+
+===== \database\migrations\2026_11_06_000005_create_team_members_table.php =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('team_members', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->json('role');
+            $table->json('bio')->nullable();
+            $table->unsignedInteger('sort_order')->default(0);
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('team_members');
+    }
+};
+
+
+===== \database\migrations\2026_11_06_000009_create_contact_messages_table.php =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('contact_messages', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('phone', 30)->nullable();
+            $table->string('email')->nullable();
+            $table->string('subject')->nullable();
+            $table->text('message');
+            $table->timestamp('handled_at')->nullable();
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('contact_messages');
+    }
+};
+
+
+===== \resources\js\lib\i18n.ts =====
+import { usePage } from '@inertiajs/react';
+
+export type Locale = 'id' | 'en';
+
+const id = {
+    // Navigation
+    'nav.home': 'Beranda',
+    'nav.explore': 'Jelajahi',
+    'nav.explore.tourism': 'Wisata',
+    'nav.explore.village': 'Karya Desa',
+    'nav.destinations': 'Destinasi',
+    'nav.activities': 'Pengalaman Wisata',
+    'nav.products': 'Produk Desa',
+    'nav.stories': 'Cerita Desa',
+    'nav.services': 'Layanan',
+    'nav.services.booking': 'Pemesanan',
+    'nav.facilities': 'Sewa Fasilitas',
+    'nav.events': 'Event & Kegiatan',
+    'nav.info': 'Informasi',
+    'nav.info.visit': 'Kunjungan',
+    'nav.info.contact': 'Kontak',
+    'nav.visitInfo': 'Informasi Kunjungan',
+    'nav.faq': 'Tanya Jawab',
+    'nav.contact': 'Hubungi Kami',
+
+    // Header
+    'header.login': 'Masuk',
+    'header.book': 'Pesan Sekarang',
+    'header.language': 'Bahasa',
+    'header.menuOpen': 'Buka menu',
+    'header.menuClose': 'Tutup menu',
+
+    // Footer
+    'footer.about':
+        'Sistem Informasi Wisata Pasirnanjung. Informasi destinasi, pemesanan fasilitas, dan pendaftaran acara Desa Wisata Pasirnanjung Geulis.',
+    'footer.explore': 'Jelajah Desa',
+    'footer.services': 'Layanan & Informasi',
+    'footer.contact': 'Kontak',
+    'footer.phone': 'Telepon',
+    'footer.noContact': 'Informasi kontak akan segera tersedia.',
+    'footer.rights': 'Seluruh hak cipta dilindungi.',
+
+    // Landing: meta and hero
+    'meta.description':
+        'Desa Wisata Pasirnanjung Geulis: jelajahi destinasi alam dan budaya, ikuti kegiatan bersama warga, sewa fasilitas desa, dan daftar acara secara online.',
+    'hero.badge': 'Wisata Desa Pasirnanjung',
+    'hero.description':
+        'Menyatu dengan alam, budaya, dan warga desa. Jelajahi destinasi, ikuti kegiatan bersama masyarakat, dan sewa fasilitas desa untuk acaramu.',
+    'hero.explore': 'Jelajahi Destinasi',
+    'hero.rent': 'Sewa Fasilitas',
+    'hero.video': 'Tonton Video',
+    'hero.scroll': 'Gulir ke bawah',
+
+    // Landing: about
+    'about.eyebrow': 'Tentang Desa',
+    'about.title': 'Mengenal Desa Wisata Pasirnanjung Geulis',
+    'about.p1':
+        'Pasirnanjung Geulis adalah desa wisata yang mengajak pengunjung menikmati alam, budaya, dan keseharian warganya. Di sini kamu bisa menjelajahi destinasi alam, mengikuti kegiatan bersama masyarakat, membawa pulang produk lokal, dan menyewa fasilitas desa untuk acara.',
+    'about.p2':
+        'Lewat situs ini kamu dapat melihat destinasi dan kegiatan, memesan fasilitas, serta mendaftar acara dengan mudah.',
+    'about.point1': 'Pesan tanpa perlu membuat akun',
+    'about.point2': 'Dikonfirmasi langsung oleh pengelola desa',
+    'about.point3': 'Pembayaran lewat transfer atau QRIS',
+    'about.imageAlt': 'Suasana Desa Wisata Pasirnanjung Geulis',
+
+    // Landing: sections
+    'destinations.eyebrow': 'Destinasi Wisata',
+    'destinations.title': 'Jelajahi Pesona Alam & Warisan Pasirnanjung',
+    'destinations.description':
+        'Dari pemandangan alam hingga ruang budaya warga, temukan tempat-tempat yang paling berkesan di desa.',
+    'activities.eyebrow': 'Pengalaman Wisata',
+    'activities.title': 'Temukan Pengalamanmu di Desa',
+    'activities.description':
+        'Kegiatan seru bersama warga yang bisa kamu ikuti selama berkunjung.',
+    'activities.needsReservation': 'Perlu reservasi',
+    'activities.noReservation': 'Tanpa reservasi',
+    'activities.ask': 'Tanya pengelola',
+    'activities.askMessage': 'Halo, saya ingin bertanya tentang {name}.',
+    'facilities.eyebrow': 'Layanan Desa',
+    'facilities.title': 'Sewa Fasilitas Desa Wisata',
+    'facilities.description':
+        'Gunakan fasilitas desa untuk pertemuan, acara keluarga, atau kegiatan kelompokmu. Pilih tanggal, kirim pesanan, dan pengelola akan mengonfirmasinya setelah bukti pembayaran diverifikasi.',
+    'facilities.from': 'mulai {price} / hari',
+    'facilities.cta': 'Pesan Fasilitas',
+    'products.eyebrow': 'Karya Warga Desa',
+    'products.title': 'Produk Pilihan Desa',
+    'products.description':
+        'Oleh-oleh dan karya UMKM warga. Hubungi pembuatnya langsung untuk memesan.',
+    'products.contact': 'Hubungi via WhatsApp',
+    'products.message': 'Halo, saya tertarik dengan {name}.',
+    'events.eyebrow': 'Agenda Desa',
+    'events.title': 'Event & Kegiatan Mendatang',
+    'events.all': 'Lihat semua acara â†’',
+    'events.free': 'Gratis',
+    'events.register': 'Daftar',
+    'stories.eyebrow': 'Kabar Desa',
+    'stories.title': 'Cerita dari Pasirnanjung',
+    'stories.description': 'Kabar, budaya, dan kisah warga desa wisata.',
+    'stories.culture': 'Budaya',
+    'stories.village_potential': 'Potensi Desa',
+    'stories.community': 'Masyarakat',
+    'visit.eyebrow': 'Informasi Kunjungan',
+    'visit.title': 'Informasi Kunjungan & Tanya Jawab',
+    'visit.map': 'Buka di Peta',
+    'visit.whatsapp': 'Hubungi WhatsApp',
+    'cta.title': 'Ayo Berkunjung ke Pasirnanjung',
+    'cta.description':
+        'Rencanakan kunjunganmu, pesan fasilitas, atau tanyakan langsung kepada pengelola desa.',
+    'cta.contact': 'Hubungi Kami',
+} as const;
+
+export type MessageKey = keyof typeof id;
+
+const en: Record<MessageKey, string> = {
+    'nav.home': 'Home',
+    'nav.explore': 'Explore',
+    'nav.explore.tourism': 'Tourism',
+    'nav.explore.village': 'Village Works',
+    'nav.destinations': 'Destinations',
+    'nav.activities': 'Experiences',
+    'nav.products': 'Village Products',
+    'nav.stories': 'Village Stories',
+    'nav.services': 'Services',
+    'nav.services.booking': 'Booking',
+    'nav.facilities': 'Facility Rental',
+    'nav.events': 'Events & Activities',
+    'nav.info': 'Information',
+    'nav.info.visit': 'Visiting',
+    'nav.info.contact': 'Contact',
+    'nav.visitInfo': 'Visit Information',
+    'nav.faq': 'FAQ',
+    'nav.contact': 'Contact Us',
+
+    'header.login': 'Log in',
+    'header.book': 'Book Now',
+    'header.language': 'Language',
+    'header.menuOpen': 'Open menu',
+    'header.menuClose': 'Close menu',
+
+    'footer.about':
+        'Pasirnanjung Tourism Information System. Destination information, facility booking, and event registration for Pasirnanjung Geulis Tourism Village.',
+    'footer.explore': 'Explore the Village',
+    'footer.services': 'Services & Information',
+    'footer.contact': 'Contact',
+    'footer.phone': 'Phone',
+    'footer.noContact': 'Contact information will be available soon.',
+    'footer.rights': 'All rights reserved.',
+
+    'meta.description':
+        'Pasirnanjung Geulis Tourism Village: explore natural and cultural destinations, join activities with the villagers, rent village facilities, and register for events online.',
+    'hero.badge': 'Pasirnanjung Village Tourism',
+    'hero.description':
+        'Be one with nature, culture, and the villagers. Explore destinations, join community activities, and rent village facilities for your event.',
+    'hero.explore': 'Explore Destinations',
+    'hero.rent': 'Rent Facilities',
+    'hero.video': 'Watch Video',
+    'hero.scroll': 'Scroll down',
+
+    'about.eyebrow': 'About the Village',
+    'about.title': 'Get to Know Pasirnanjung Geulis Tourism Village',
+    'about.p1':
+        'Pasirnanjung Geulis is a tourism village that invites visitors to enjoy its nature, culture, and the daily life of its people. Here you can explore natural destinations, join activities with the community, take home local products, and rent village facilities for events.',
+    'about.p2':
+        'On this site you can browse destinations and activities, book facilities, and register for events with ease.',
+    'about.point1': 'Book without creating an account',
+    'about.point2': 'Confirmed directly by the village managers',
+    'about.point3': 'Pay by bank transfer or QRIS',
+    'about.imageAlt': 'The atmosphere of Pasirnanjung Geulis Tourism Village',
+
+    'destinations.eyebrow': 'Tourist Destinations',
+    'destinations.title': 'Discover the Nature & Heritage of Pasirnanjung',
+    'destinations.description':
+        'From natural scenery to the cultural spaces of the villagers, find the most memorable places in the village.',
+    'activities.eyebrow': 'Experiences',
+    'activities.title': 'Find Your Experience in the Village',
+    'activities.description':
+        'Fun activities with the villagers that you can join during your visit.',
+    'activities.needsReservation': 'Reservation required',
+    'activities.noReservation': 'No reservation needed',
+    'activities.ask': 'Ask the manager',
+    'activities.askMessage': 'Hello, I would like to ask about {name}.',
+    'facilities.eyebrow': 'Village Services',
+    'facilities.title': 'Rent Village Facilities',
+    'facilities.description':
+        'Use village facilities for meetings, family events, or group activities. Pick a date, send your order, and the managers will confirm it once the proof of payment is verified.',
+    'facilities.from': 'from {price} / day',
+    'facilities.cta': 'Book a Facility',
+    'products.eyebrow': 'Made by Villagers',
+    'products.title': 'Selected Village Products',
+    'products.description':
+        'Souvenirs and crafts by village micro-businesses. Contact the maker directly to order.',
+    'products.contact': 'Contact via WhatsApp',
+    'products.message': 'Hello, I am interested in {name}.',
+    'events.eyebrow': 'Village Agenda',
+    'events.title': 'Upcoming Events & Activities',
+    'events.all': 'See all events â†’',
+    'events.free': 'Free',
+    'events.register': 'Register',
+    'stories.eyebrow': 'Village News',
+    'stories.title': 'Stories from Pasirnanjung',
+    'stories.description': 'News, culture, and stories of the tourism village.',
+    'stories.culture': 'Culture',
+    'stories.village_potential': 'Village Potential',
+    'stories.community': 'Community',
+    'visit.eyebrow': 'Visit Information',
+    'visit.title': 'Visit Information & FAQ',
+    'visit.map': 'Open in Maps',
+    'visit.whatsapp': 'Contact via WhatsApp',
+    'cta.title': 'Come Visit Pasirnanjung',
+    'cta.description':
+        'Plan your visit, book a facility, or ask the village managers directly.',
+    'cta.contact': 'Contact Us',
+};
+
+const messages: Record<Locale, Record<MessageKey, string>> = { id, en };
+
+export type Translate = (
+    key: MessageKey,
+    params?: Record<string, string | number>,
+) => string;
+
+export function useTranslation(): { t: Translate; locale: Locale } {
+    const { locale } = usePage().props;
+
+    const t: Translate = (key, params) => {
+        let text = messages[locale]?.[key] ?? id[key];
+
+        for (const [name, value] of Object.entries(params ?? {})) {
+            text = text.replace(`{${name}}`, String(value));
+        }
+
+        return text;
+    };
+
+    return { t, locale };
+}
+
+export const localeNames: Record<Locale, string> = {
+    id: 'Bahasa Indonesia',
+    en: 'English',
+};
+
+
+===== \resources\js\pages\public\events\index.tsx =====
+import { Head, Link } from '@inertiajs/react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatDateTime, formatRupiah } from '@/lib/format';
+import { show } from '@/routes/events';
+
+type EventSummary = {
+    slug: string;
+    title: string;
+    starts_at: string;
+    location_name: string | null;
+    fee: number;
+};
+
+export default function EventsIndex({ events }: { events: EventSummary[] }) {
+    return (
+        <>
+            <Head title="Acara" />
+            <h1 className="mb-6 text-2xl font-semibold">Acara</h1>
+            <div className="grid gap-4 sm:grid-cols-2">
+                {events.map((event) => (
+                    <Link key={event.slug} href={show(event.slug)}>
+                        <Card className="h-full transition hover:border-primary">
+                            <CardHeader>
+                                <CardTitle>{event.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-1 text-sm">
+                                <p>{formatDateTime(event.starts_at)}</p>
+                                {event.location_name && (
+                                    <p>{event.location_name}</p>
+                                )}
+                                <p className="font-medium">
+                                    {event.fee > 0
+                                        ? formatRupiah(event.fee)
+                                        : 'Gratis'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                ))}
+                {events.length === 0 && (
+                    <p className="text-muted-foreground">
+                        Belum ada acara yang akan datang.
+                    </p>
+                )}
+            </div>
+        </>
+    );
+}
+
+
+===== \resources\js\components\landing\about.tsx =====
+import { MapPin } from 'lucide-react';
+import Media from '@/components/landing/media';
+import SectionHeading from '@/components/landing/section-heading';
+import { useTranslation } from '@/lib/i18n';
+
+export default function About({
+    image,
+    address,
+}: {
+    image: string | null;
+    address?: string;
+}) {
+    const { t } = useTranslation();
+    const highlights = [
+        t('about.point1'),
+        t('about.point2'),
+        t('about.point3'),
+    ];
+
+    return (
+        <section id="tentang" className="scroll-mt-24 bg-cream py-20">
+            <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 lg:grid-cols-2">
+                <div>
+                    <SectionHeading
+                        eyebrow={t('about.eyebrow')}
+                        title={t('about.title')}
+                    />
+                    <div className="mt-6 space-y-4 leading-relaxed text-forest-800/80">
+                        <p>{t('about.p1')}</p>
+                        <p>{t('about.p2')}</p>
+                    </div>
+                    <ul className="mt-6 space-y-2 text-sm font-medium text-forest-900">
+                        {highlights.map((item) => (
+                            <li key={item} className="flex items-center gap-2">
+                                <span className="size-2 rounded-full bg-clay" />
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="relative mx-auto w-full max-w-md">
+                    <div className="aspect-[3/4] overflow-hidden rounded-t-[999px] rounded-b-3xl border-8 border-white shadow-xl">
+                        <Media src={image} alt={t('about.imageAlt')} />
+                    </div>
+                    {address && (
+                        <p className="absolute right-4 -bottom-5 left-4 flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-medium text-forest-900 shadow-lg">
+                            <MapPin className="size-4 shrink-0 text-clay" />
+                            {address}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+
+===== \resources\js\components\landing\destinations.tsx =====
+import { MapPin } from 'lucide-react';
+import Media from '@/components/landing/media';
+import SectionHeading from '@/components/landing/section-heading';
+import { useTranslation } from '@/lib/i18n';
+import type { Destination } from '@/types/landing';
+
+export default function Destinations({
+    destinations,
+}: {
+    destinations: Destination[];
+}) {
+    const { t } = useTranslation();
+
+    if (destinations.length === 0) {
+        return null;
+    }
+
+    return (
+        <section id="destinasi" className="scroll-mt-24 bg-cream-dark py-20">
+            <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-[1fr_1.5fr]">
+                <div className="lg:pt-6">
+                    <SectionHeading
+                        eyebrow={t('destinations.eyebrow')}
+                        title={t('destinations.title')}
+                        description={t('destinations.description')}
+                    />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                    {destinations.map((destination, position) => (
+                        <article
+                            key={destination.id}
+                            className={`group relative isolate overflow-hidden rounded-2xl ${
+                                position % 3 === 0
+                                    ? 'aspect-[4/5]'
+                                    : 'aspect-[4/4.2]'
+                            }`}
+                        >
+                            <Media
+                                src={destination.image}
+                                alt={destination.name}
+                                className="transition duration-500 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-linear-to-t from-forest-950/85 via-forest-950/10 to-transparent" />
+                            <div className="absolute inset-x-0 bottom-0 p-5 text-cream">
+                                <h3 className="font-serif text-xl font-semibold">
+                                    {destination.name}
+                                </h3>
+                                {destination.summary && (
+                                    <p className="mt-1 line-clamp-2 text-sm text-forest-100">
+                                        {destination.summary}
+                                    </p>
+                                )}
+                                {destination.address && (
+                                    <p className="mt-2 flex items-center gap-1.5 text-xs text-forest-200">
+                                        <MapPin className="size-3.5" />
+                                        {destination.address}
+                                    </p>
+                                )}
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+
+===== \resources\js\components\landing\media.tsx =====
+import { Mountain } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+/**
+ * A photo, or a calm green placeholder while no photo has been uploaded yet.
+ */
+export default function Media({
+    src,
+    alt,
+    className,
+}: {
+    src: string | null;
+    alt: string;
+    className?: string;
+}) {
+    if (src) {
+        return (
+            <img
+                src={src}
+                alt={alt}
+                loading="lazy"
+                className={cn('size-full object-cover', className)}
+            />
+        );
+    }
+
+    return (
+        <div
+            role="img"
+            aria-label={alt}
+            className={cn(
+                'flex size-full items-center justify-center bg-linear-to-br from-forest-700 via-forest-600 to-forest-800 text-forest-200/60',
+                className,
+            )}
+        >
+            <Mountain className="size-1/4 max-h-16 min-h-8" />
+        </div>
+    );
+}
+
+
+===== \resources\js\components\landing\section-heading.tsx =====
+import { cn } from '@/lib/utils';
+
+export default function SectionHeading({
+    eyebrow,
+    title,
+    description,
+    centered = false,
+    inverted = false,
+}: {
+    eyebrow: string;
+    title: string;
+    description?: string;
+    centered?: boolean;
+    inverted?: boolean;
+}) {
+    return (
+        <div className={cn('max-w-2xl', centered && 'mx-auto text-center')}>
+            <p
+                className={cn(
+                    'mb-3 text-xs font-semibold tracking-[0.25em] uppercase',
+                    inverted ? 'text-clay' : 'text-clay',
+                )}
+            >
+                {eyebrow}
+            </p>
+            <h2
+                className={cn(
+                    'font-serif text-3xl leading-tight font-semibold md:text-4xl',
+                    inverted ? 'text-cream' : 'text-forest-900',
+                )}
+            >
+                {title}
+            </h2>
+            {description && (
+                <p
+                    className={cn(
+                        'mt-4 leading-relaxed',
+                        inverted ? 'text-forest-100' : 'text-forest-800/80',
+                    )}
+                >
+                    {description}
+                </p>
+            )}
+        </div>
+    );
+}
+
