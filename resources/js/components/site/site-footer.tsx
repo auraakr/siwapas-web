@@ -5,8 +5,10 @@ import events from '@/routes/events';
 import facilities from '@/routes/facilities';
 
 const exploreLinks: { label: MessageKey; href: string }[] = [
-    { label: 'nav.destinations', href: '/#destinasi' },
-    { label: 'nav.activities', href: '/#pengalaman' },
+    { label: 'nav.destinations', href: '/destinasi' },
+    { label: 'nav.activities', href: '/destinasi#pengalaman' },
+    { label: 'nav.gallery', href: '/galeri' },
+    { label: 'nav.about', href: '/profil-desa' },
     { label: 'nav.products', href: '/#produk' },
     { label: 'nav.stories', href: '/#cerita' },
 ];
@@ -88,12 +90,12 @@ export default function SiteFooter() {
                             </Link>
                         </li>
                         <li>
-                            <a
-                                href="/#kunjungan"
+                            <Link
+                                href="/kontak"
                                 className="transition hover:text-cream"
                             >
-                                {t('nav.visitInfo')}
-                            </a>
+                                {t('nav.contact')}
+                            </Link>
                         </li>
                     </ul>
                 </div>

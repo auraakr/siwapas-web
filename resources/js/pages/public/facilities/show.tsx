@@ -1,11 +1,14 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
+import { CalendarX2, Users } from 'lucide-react';
+import { useState } from 'react';
+import { store } from '@/actions/App/Http/Controllers/Public/ReservationController';
+import FormField from '@/components/site/form-field';
+import PageTitle from '@/components/site/page-title';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDate, formatRupiah } from '@/lib/format';
-import { store } from '@/actions/App/Http/Controllers/Public/ReservationController';
+import { useTranslation } from '@/lib/i18n';
 
 type Props = {
     facility: {
@@ -20,117 +23,256 @@ type Props = {
 };
 
 export default function FacilityShow({ facility, unavailable }: Props) {
+    const { t } = useTranslation();
+    const [checkIn, setCheckIn] = useState('');
+
     return (
         <>
-            <Head title={facility.name} />
-            <h1 className="text-2xl font-semibold">{facility.name}</h1>
-            <p className="mt-2 text-muted-foreground">{facility.description}</p>
-            <p className="mt-2 text-sm">
-                {facility.capacity !== null &&
-                    `Kapasitas ${facility.capacity} orang · `}
-                Mulai {formatRupiah(facility.base_price)} / hari
-            </p>
+            <Head title={facility.name}>
+                <meta
+                    name="description"
+                    content={
+                        facility.description ?? t('facilities.description')
+                    }
+                />
+            </Head>
 
-            {unavailable.length > 0 && (
-                <div className="mt-6 text-sm">
-                    <h2 className="font-medium">Tanggal yang sudah terisi</h2>
-                    <ul className="mt-1 list-disc pl-5 text-muted-foreground">
-                        {unavailable.map((range) => (
-                            <li key={range.from}>
-                                {formatDate(range.from)} –{' '}
-                                {formatDate(range.to)}
-                            </li>
-                        ))}
-                    </ul>
+            <PageTitle
+                eyebrow={t('facilities.eyebrow')}
+                title={facility.name}
+            />
+
+            <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+                <div className="space-y-5">
+                    <div className="flex flex-wrap gap-3">
+                        <div className="rounded-xl border bg-white px-5 py-4 shadow-sm">
+                            <p className="text-xs text-muted-foreground">
+                                {t('facilities.priceFrom')}
+                            </p>
+                            <p className="font-serif text-2xl font-semibold text-forest-900">
+                                {formatRupiah(facility.base_price)}
+                                <span className="ml-1 text-sm font-normal text-muted-foreground">
+                                    {t('facilities.perDay')}
+                                </span>
+                            </p>
+                        </div>
+                        {facility.capacity !== null && (
+                            <div className="flex items-center gap-2 rounded-xl border bg-white px-5 py-4 text-sm font-medium shadow-sm">
+                                <Users
+                                    className="size-4 text-clay-dark"
+                                    aria-hidden="true"
+                                />
+                                {t('facilities.capacity', {
+                                    count: facility.capacity,
+                                })}
+                            </div>
+                        )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        {t('booking.priceNote')}
+                    </p>
+                    {facility.description && (
+                        <p className="leading-relaxed whitespace-pre-line text-forest-800/90">
+                            {facility.description}
+                        </p>
+                    )}
                 </div>
-            )}
 
-            <h2 className="mt-8 mb-4 text-lg font-medium">Reservasi</h2>
-            <Form
-                {...store.form(facility.slug)}
-                className="grid max-w-md gap-4"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="check_in">Check-in</Label>
-                                <Input
-                                    id="check_in"
-                                    name="check_in"
-                                    type="date"
-                                    required
+                <div
+                    id="reservasi"
+                    className="scroll-mt-28 rounded-2xl border bg-white p-6 shadow-sm lg:sticky lg:top-32 lg:col-start-2 lg:row-span-2 lg:row-start-1"
+                >
+                    <h2 className="mb-4 font-serif text-xl font-semibold text-forest-900">
+                        {t('booking.formTitle')}
+                    </h2>
+
+                    {unavailable.length > 0 && (
+                        <div className="mb-5 rounded-lg bg-cream p-4 text-sm">
+                            <h3 className="mb-2 flex items-center gap-2 font-semibold text-forest-900">
+                                <CalendarX2
+                                    className="size-4 text-clay-dark"
+                                    aria-hidden="true"
                                 />
-                                <InputError message={errors.check_in} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="check_out">Check-out</Label>
-                                <Input
-                                    id="check_out"
-                                    name="check_out"
-                                    type="date"
-                                    required
-                                />
-                                <InputError message={errors.check_out} />
-                            </div>
+                                {t('booking.unavailableTitle')}
+                            </h3>
+                            <ul className="max-h-32 space-y-1 overflow-y-auto text-forest-800/90">
+                                {unavailable.map((range) => (
+                                    <li key={`${range.from}-${range.to}`}>
+                                        {formatDate(range.from)} –{' '}
+                                        {formatDate(range.to)}
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                {t('booking.unavailableNote')}
+                            </p>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="guests">Jumlah tamu</Label>
-                            <Input
-                                id="guests"
-                                name="guests"
-                                type="number"
-                                min={1}
-                                defaultValue={1}
-                                required
-                            />
-                            <InputError message={errors.guests} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="customer_name">Nama</Label>
-                            <Input
-                                id="customer_name"
-                                name="customer_name"
-                                required
-                            />
-                            <InputError message={errors.customer_name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="customer_phone">
-                                Nomor telepon
-                            </Label>
-                            <Input
-                                id="customer_phone"
-                                name="customer_phone"
-                                type="tel"
-                                placeholder="08xxxxxxxxxx"
-                                required
-                            />
-                            <InputError message={errors.customer_phone} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="customer_email">
-                                Email (opsional)
-                            </Label>
-                            <Input
-                                id="customer_email"
-                                name="customer_email"
-                                type="email"
-                            />
-                            <InputError message={errors.customer_email} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="notes">Catatan (opsional)</Label>
-                            <Input id="notes" name="notes" />
-                            <InputError message={errors.notes} />
-                        </div>
-                        <Button type="submit" disabled={processing}>
-                            {processing && <Spinner />}
-                            Pesan sekarang
-                        </Button>
-                    </>
+                    )}
+
+                    <Form {...store.form(facility.slug)} className="grid gap-4">
+                        {({ processing, errors }) => (
+                            <>
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                                    <FormField
+                                        id="check_in"
+                                        label={t('booking.checkIn')}
+                                        error={errors.check_in}
+                                    >
+                                        <Input
+                                            id="check_in"
+                                            name="check_in"
+                                            type="date"
+                                            required
+                                            className="h-11"
+                                            aria-invalid={
+                                                errors.check_in
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            onChange={(event) =>
+                                                setCheckIn(event.target.value)
+                                            }
+                                        />
+                                    </FormField>
+                                    <FormField
+                                        id="check_out"
+                                        label={t('booking.checkOut')}
+                                        error={errors.check_out}
+                                    >
+                                        <Input
+                                            id="check_out"
+                                            name="check_out"
+                                            type="date"
+                                            required
+                                            min={checkIn || undefined}
+                                            className="h-11"
+                                            aria-invalid={
+                                                errors.check_out
+                                                    ? true
+                                                    : undefined
+                                            }
+                                        />
+                                    </FormField>
+                                </div>
+                                <FormField
+                                    id="guests"
+                                    label={t('booking.guests')}
+                                    error={errors.guests}
+                                >
+                                    <Input
+                                        id="guests"
+                                        name="guests"
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={1}
+                                        max={facility.capacity ?? undefined}
+                                        defaultValue={1}
+                                        required
+                                        className="h-11"
+                                        aria-invalid={
+                                            errors.guests ? true : undefined
+                                        }
+                                    />
+                                </FormField>
+                                <FormField
+                                    id="customer_name"
+                                    label={t('booking.name')}
+                                    error={errors.customer_name}
+                                >
+                                    <Input
+                                        id="customer_name"
+                                        name="customer_name"
+                                        autoComplete="name"
+                                        required
+                                        className="h-11"
+                                        aria-invalid={
+                                            errors.customer_name
+                                                ? true
+                                                : undefined
+                                        }
+                                    />
+                                </FormField>
+                                <FormField
+                                    id="customer_phone"
+                                    label={t('booking.phone')}
+                                    error={errors.customer_phone}
+                                    hint={t('booking.phoneHint')}
+                                >
+                                    <Input
+                                        id="customer_phone"
+                                        name="customer_phone"
+                                        type="tel"
+                                        inputMode="tel"
+                                        autoComplete="tel"
+                                        placeholder="08xxxxxxxxxx"
+                                        required
+                                        className="h-11"
+                                        aria-invalid={
+                                            errors.customer_phone
+                                                ? true
+                                                : undefined
+                                        }
+                                    />
+                                </FormField>
+                                <FormField
+                                    id="customer_email"
+                                    label={t('booking.email')}
+                                    error={errors.customer_email}
+                                >
+                                    <Input
+                                        id="customer_email"
+                                        name="customer_email"
+                                        type="email"
+                                        inputMode="email"
+                                        autoComplete="email"
+                                        className="h-11"
+                                        aria-invalid={
+                                            errors.customer_email
+                                                ? true
+                                                : undefined
+                                        }
+                                    />
+                                </FormField>
+                                <FormField
+                                    id="notes"
+                                    label={t('booking.notes')}
+                                    error={errors.notes}
+                                >
+                                    <Input
+                                        id="notes"
+                                        name="notes"
+                                        className="h-11"
+                                    />
+                                </FormField>
+                                <Button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="h-12 w-full text-base"
+                                >
+                                    {processing && <Spinner />}
+                                    {t('booking.submit')}
+                                </Button>
+                                <p className="text-center text-xs text-muted-foreground">
+                                    {t('booking.afterSubmit')}
+                                </p>
+                            </>
+                        )}
+                    </Form>
+                </div>
+
+                {facility.rules && facility.rules.length > 0 && (
+                    <div>
+                        <h2 className="mb-3 font-serif text-xl font-semibold text-forest-900">
+                            {t('booking.rules')}
+                        </h2>
+                        <ul className="list-disc space-y-1.5 pl-5 text-forest-800/90">
+                            {facility.rules.map((rule) => (
+                                <li key={rule}>{rule}</li>
+                            ))}
+                        </ul>
+                    </div>
                 )}
-            </Form>
+            </div>
         </>
     );
 }

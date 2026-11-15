@@ -14,6 +14,10 @@ use App\Http\Controllers\Public\OrderController;
 use App\Http\Controllers\Public\PaymentProofController;
 use App\Http\Controllers\Public\ReservationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\DestinationController;
+use App\Http\Controllers\Public\GalleryController;
+use App\Http\Controllers\Public\VillageController;
 
 Route::get('/', HomeController::class)->name('home');
 Route::post('bahasa', [LocaleController::class, 'update'])->name('locale.update');
@@ -29,6 +33,14 @@ Route::get('acara/{event:slug}', [EventController::class, 'show'])->name('events
 Route::post('acara/{event:slug}/daftar', [EventRegistrationController::class, 'store'])
     ->middleware('throttle:public-write')
     ->name('events.register');
+Route::get('destinasi', [DestinationController::class, 'index'])->name('destinations.index');
+Route::get('destinasi/{destination:slug}', [DestinationController::class, 'show'])->name('destinations.show');
+Route::get('galeri', GalleryController::class)->name('gallery.index');
+Route::get('profil-desa', VillageController::class)->name('village.show');
+Route::get('kontak', [ContactController::class, 'show'])->name('contact.show');
+Route::post('kontak', [ContactController::class, 'store'])
+    ->middleware('throttle:public-write')
+    ->name('contact.store');
 
 Route::get('pesanan/{order:access_token}', [OrderController::class, 'show'])->name('orders.show');
 Route::post('pesanan/{order:access_token}/bukti', [PaymentProofController::class, 'store'])

@@ -39,8 +39,9 @@ const navigation: NavItem[] = [
             {
                 heading: 'nav.explore.tourism',
                 links: [
-                    { label: 'nav.destinations', href: '/#destinasi' },
-                    { label: 'nav.activities', href: '/#pengalaman' },
+                    { label: 'nav.destinations', href: '/destinasi' },
+                    { label: 'nav.activities', href: '/destinasi#pengalaman' },
+                    { label: 'nav.gallery', href: '/galeri' },
                 ],
             },
             {
@@ -48,6 +49,7 @@ const navigation: NavItem[] = [
                 links: [
                     { label: 'nav.products', href: '/#produk' },
                     { label: 'nav.stories', href: '/#cerita' },
+                    { label: 'nav.about', href: '/profil-desa' },
                 ],
             },
         ],
@@ -76,7 +78,7 @@ const navigation: NavItem[] = [
             },
             {
                 heading: 'nav.info.contact',
-                links: [{ label: 'nav.contact', href: '/#kontak' }],
+                links: [{ label: 'nav.contact', href: '/kontak' }],
             },
         ],
     },

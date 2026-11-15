@@ -1,0 +1,26 @@
+/*
+ * Halaman pemesanan (fasilitas, acara, pesanan) memakai komponen shadcn yang secara bawaan netral
+ * (hitam-putih). Di sini warna tokennya dialihkan ke palet desa: krem, hijau hutan, dan clay.
+ * Yang diganti adalah --color-* (bukan --primary), supaya langsung berlaku pada utilitas Tailwind.
+ */
+.site-theme {
+    color-scheme: light;
+    --color-background: #faf6ec;
+    --color-foreground: #0e2a1b;
+    --color-card: #ffffff;
+    --color-card-foreground: #0e2a1b;
+    --color-popover: #ffffff;
+    --color-popover-foreground: #0e2a1b;
+    --color-primary: #a54f21;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #f1ead8;
+    --color-secondary-foreground: #153b27;
+    --color-muted: #f1ead8;
+    --color-muted-foreground: #4b6b57;
+    --color-accent: #e1ede3;
+    --color-accent-foreground: #153b27;
+    --color-destructive: #b91c1c;
+    --color-border: #c2dbc7;
+    --color-input: #c2dbc7;
+    --color-ring: #a54f21;
+}

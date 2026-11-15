@@ -16,6 +16,8 @@ void createInertiaApp({
         switch (true) {
             case name === 'welcome':
                 return SiteLayout;
+            case name.startsWith('site/'):
+                return SiteLayout;
             case name.startsWith('public/'):
                 return PublicLayout;
             case name.startsWith('auth/'):
