@@ -47,3 +47,9 @@ export type PageContent = {
     seo_title: string | null;
     seo_description: string | null;
 };
+
+export type VillageSection = PageContent & {
+    key: string;
+    anchor: string;
+    image: string | null;
+};

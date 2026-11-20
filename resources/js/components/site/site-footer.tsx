@@ -4,11 +4,11 @@ import { home } from '@/routes';
 import events from '@/routes/events';
 import facilities from '@/routes/facilities';
 
+// "Sewa Fasilitas" lives in the Services column, so it is not repeated here.
 const exploreLinks: { label: MessageKey; href: string }[] = [
-    { label: 'nav.destinations', href: '/destinasi' },
-    { label: 'nav.activities', href: '/destinasi#pengalaman' },
+    { label: 'nav.profile', href: '/profil-desa' },
+    { label: 'nav.activities', href: '/#pengalaman' },
     { label: 'nav.gallery', href: '/galeri' },
-    { label: 'nav.about', href: '/profil-desa' },
     { label: 'nav.products', href: '/#produk' },
     { label: 'nav.stories', href: '/#cerita' },
 ];
@@ -87,6 +87,14 @@ export default function SiteFooter() {
                                 className="transition hover:text-cream"
                             >
                                 {t('nav.events')}
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href="/kunjungan"
+                                className="transition hover:text-cream"
+                            >
+                                {t('nav.visit')}
                             </Link>
                         </li>
                         <li>

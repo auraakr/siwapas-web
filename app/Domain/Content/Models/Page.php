@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -26,10 +28,10 @@ use Spatie\Translatable\HasTranslations;
 #[Fillable(['key', 'slug', 'title', 'body', 'seo_title', 'seo_description', 'status'])]
 #[UseFactory(PageFactory::class)]
 
-class Page extends Model
+class Page extends Model implements HasMedia
 {
     /** @use HasFactory<PageFactory> */
-    use HasFactory, HasTranslations;
+    use HasFactory, HasTranslations, InteractsWithMedia;
 
     /**
      * @var list<string>

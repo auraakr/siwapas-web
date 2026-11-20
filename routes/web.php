@@ -18,6 +18,7 @@ use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\DestinationController;
 use App\Http\Controllers\Public\GalleryController;
 use App\Http\Controllers\Public\VillageController;
+use App\Http\Controllers\Public\VisitController;
 
 Route::get('/', HomeController::class)->name('home');
 Route::post('bahasa', [LocaleController::class, 'update'])->name('locale.update');
@@ -28,6 +29,7 @@ Route::post('fasilitas/{facility:slug}/reservasi', [ReservationController::class
     ->middleware('throttle:public-write')
     ->name('reservations.store');
 
+Route::get('kunjungan', VisitController::class)->name('visit.show');
 Route::get('acara', [EventController::class, 'index'])->name('events.index');
 Route::get('acara/{event:slug}', [EventController::class, 'show'])->name('events.show');
 Route::post('acara/{event:slug}/daftar', [EventRegistrationController::class, 'store'])

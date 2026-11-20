@@ -1,13 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    ChevronDown,
-    Clock,
-    Mail,
-    MapPin,
-    Menu,
-    Phone,
-    X,
-} from 'lucide-react';
+import { ChevronDown, Clock, Mail, MapPin, Menu, Phone, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import PublicUserMenu from '@/components/public-user-menu';
 import LanguageSwitcher, {
@@ -29,19 +21,21 @@ type NavColumn = { heading: MessageKey; links: NavLink[] };
 type NavItem = { label: MessageKey; href?: string; columns?: NavColumn[] };
 
 /**
- * Related pages are grouped so the bar stays short: each group opens a panel with titled columns.
+ * Five top-level items, following the client's outline: the groups that need more room open a
+ * panel with titled columns.
  */
 const navigation: NavItem[] = [
     { label: 'nav.home', href: home().url },
+    { label: 'nav.profile', href: '/profil-desa' },
     {
         label: 'nav.explore',
         columns: [
             {
                 heading: 'nav.explore.tourism',
                 links: [
-                    { label: 'nav.destinations', href: '/destinasi' },
-                    { label: 'nav.activities', href: '/destinasi#pengalaman' },
-                    { label: 'nav.gallery', href: '/galeri' },
+                    { label: 'nav.facilities', href: facilities.index().url },
+                    { label: 'nav.activities', href: '/#pengalaman' },
+                    { label: 'nav.events', href: events.index().url },
                 ],
             },
             {
@@ -49,39 +43,12 @@ const navigation: NavItem[] = [
                 links: [
                     { label: 'nav.products', href: '/#produk' },
                     { label: 'nav.stories', href: '/#cerita' },
-                    { label: 'nav.about', href: '/profil-desa' },
                 ],
             },
         ],
     },
-    {
-        label: 'nav.services',
-        columns: [
-            {
-                heading: 'nav.services.booking',
-                links: [
-                    { label: 'nav.facilities', href: facilities.index().url },
-                    { label: 'nav.events', href: events.index().url },
-                ],
-            },
-        ],
-    },
-    {
-        label: 'nav.info',
-        columns: [
-            {
-                heading: 'nav.info.visit',
-                links: [
-                    { label: 'nav.visitInfo', href: '/#kunjungan' },
-                    { label: 'nav.faq', href: '/#kunjungan' },
-                ],
-            },
-            {
-                heading: 'nav.info.contact',
-                links: [{ label: 'nav.contact', href: '/kontak' }],
-            },
-        ],
-    },
+    { label: 'nav.visit', href: '/kunjungan' },
+    { label: 'nav.gallery', href: '/galeri' },
 ];
 
 const pathOf = (href: string): string => href.split('#')[0] || '/';
@@ -244,7 +211,7 @@ export default function SiteHeader() {
             )}
 
             <div className="relative border-b border-forest-100 bg-cream/95 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center gap-8 px-4 py-3">
+                <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3 2xl:gap-8">
                     <Link
                         href={home()}
                         aria-label="SIWAPAS Pasirnanjung Geulis"
@@ -260,13 +227,13 @@ export default function SiteHeader() {
                     </Link>
 
                     <nav
-                        className="mx-auto hidden items-stretch gap-9 xl:flex"
+                        className="mx-auto hidden items-stretch gap-5 xl:flex 2xl:gap-9"
                         aria-label="Utama"
                     >
                         {navigation.map((item) => {
                             const active = isActive(item, currentPath);
                             const classes = cn(
-                                'flex items-center gap-1.5 border-b-2 py-3 text-[13px] font-semibold tracking-[0.18em] text-forest-900 uppercase transition-colors hover:text-clay',
+                                'flex items-center gap-1.5 border-b-2 py-3 text-[13px] font-semibold tracking-[0.12em] whitespace-nowrap text-forest-900 uppercase transition-colors hover:text-clay 2xl:tracking-[0.18em]',
                                 active || openMenu === item.label
                                     ? 'border-clay'
                                     : 'border-transparent',
@@ -311,7 +278,7 @@ export default function SiteHeader() {
                         })}
                     </nav>
 
-                    <div className="ml-auto flex items-center gap-6 xl:ml-0 xl:pl-4">
+                    <div className="ml-auto flex items-center gap-4 xl:ml-0 xl:pl-2 2xl:gap-6 2xl:pl-4">
                         <div className="hidden sm:block">
                             <LanguageSwitcher />
                         </div>
@@ -320,14 +287,14 @@ export default function SiteHeader() {
                         ) : (
                             <Link
                                 href={login()}
-                                className="hidden px-2 text-sm font-medium text-forest-900 hover:text-clay md:block"
+                                className="hidden px-2 text-sm font-medium text-forest-900 hover:text-clay 2xl:block"
                             >
                                 {t('header.login')}
                             </Link>
                         )}
                         <Link
                             href={facilities.index()}
-                            className="hidden rounded-md bg-clay-dark px-6 py-2.5 text-xs font-semibold tracking-wide text-white uppercase transition hover:bg-clay md:block"
+                            className="hidden rounded-md bg-clay-dark px-5 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap text-white uppercase transition hover:bg-clay md:block"
                         >
                             {t('header.book')}
                         </Link>

@@ -30,18 +30,32 @@ class PageResource extends Resource
     protected static ?int $navigationSort = 1;
 
     /**
-     * The only pages the public site reads, keyed by what the village profile page expects.
+     * The only pages the public site reads: the sections of "Profil Desa" and the two text blocks of
+     * "Kunjungan Kami".
      *
      * @var array<string, string>
      */
     public const KEYS = [
-        'profile' => 'Cerita Desa (halaman Profil Desa)',
-        'vision' => 'Visi & Misi (halaman Profil Desa)',
+        'profile' => 'Profil Desa: Identitas Wisata (Tentang Kami)',
+        'history' => 'Profil Desa: Sejarah',
+        'vision' => 'Profil Desa: Visi & Misi',
+        'management' => 'Profil Desa: Pengelola',
+        'potential' => 'Profil Desa: Potensi Desa',
+        'visit_info' => 'Kunjungan Kami: Informasi Reservasi',
+        'terms' => 'Kunjungan Kami: Ketentuan Reservasi',
     ];
+
+    /** Sections that show a photo beside the text. */
+    private const WITH_PHOTO = ['profile', 'history', 'management', 'potential'];
 
     private const SLUGS = [
         'profile' => 'profil-desa',
+        'history' => 'sejarah',
         'vision' => 'visi-misi',
+        'management' => 'pengelola',
+        'potential' => 'potensi-desa',
+        'visit_info' => 'informasi-reservasi',
+        'terms' => 'ketentuan-reservasi',
     ];
 
     public static function form(Form $form): Form
@@ -58,6 +72,14 @@ class PageResource extends Resource
                     ->afterStateUpdated(fn (Forms\Set $set, ?string $state) => $set('slug', self::SLUGS[$state] ?? $state)),
                 Forms\Components\TextInput::make('slug')->label('Slug URL')->required()->alphaDash()->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('title')->label('Judul')->required()->maxLength(255)->columnSpanFull(),
+                Forms\Components\SpatieMediaLibraryFileUpload::make('photo')
+                    ->label('Foto (opsional)')
+                    ->collection('default')
+                    ->image()
+                    ->maxSize(5120)
+                    ->helperText('Ditampilkan di samping teks pada halaman Profil Desa.')
+                    ->visible(fn (Forms\Get $get): bool => in_array($get('key'), self::WITH_PHOTO, true))
+                    ->columnSpanFull(),
                 Forms\Components\RichEditor::make('body')
                     ->label('Isi')
                     ->toolbarButtons(['bold', 'italic', 'h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'link', 'undo', 'redo'])

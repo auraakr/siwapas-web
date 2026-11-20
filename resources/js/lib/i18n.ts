@@ -264,6 +264,31 @@ const id = {
     'copy.copy': 'Salin',
     'copy.done': 'Tersalin',
     'copy.failed': 'Gagal menyalin',
+
+    'nav.profile': 'Profil Wisata',
+    'nav.visit': 'Kunjungan Kami',
+    'village.sections': 'Bagian halaman',
+    'village.location': 'Lokasi',
+    'visit.pageTitle': 'Rencanakan Kunjunganmu',
+    'visit.pageDescription':
+        'Jam buka, cara reservasi, dan ketentuan sebelum kamu datang ke Pasirnanjung Geulis.',
+    'visit.hoursLabel': 'Jam operasional',
+    'visit.steps': 'Tata Cara Reservasi',
+    'visit.step1.title': 'Pilih fasilitas',
+    'visit.step1.text': 'Tentukan fasilitas yang ingin kamu gunakan.',
+    'visit.step2.title': 'Cek jadwal & isi formulir',
+    'visit.step2.text':
+        'Lihat tanggal yang masih tersedia di halaman fasilitas, lalu isi formulir pemesanan.',
+    'visit.step3.title': 'Bayar & unggah bukti',
+    'visit.step3.text':
+        'Transfer atau bayar lewat QRIS sesuai nominal, lalu unggah bukti pembayaran.',
+    'visit.step4.title': 'Dikonfirmasi pengelola',
+    'visit.step4.text':
+        'BUMDes memeriksa pembayaranmu dan mengonfirmasi pesanan.',
+    'visit.seeFacilities': 'Lihat Fasilitas & Harga',
+    'visit.needHelp': 'Masih ada yang ingin ditanyakan?',
+    'visit.askMessage':
+        'Halo, saya ingin bertanya tentang kunjungan dan reservasi di Desa Wisata Pasirnanjung Geulis.',
 } as const;
 
 export type MessageKey = keyof typeof id;
@@ -517,6 +542,31 @@ const en: Record<MessageKey, string> = {
     'copy.copy': 'Copy',
     'copy.done': 'Copied',
     'copy.failed': 'Could not copy',
+
+    'nav.profile': 'Tourism Profile',
+    'nav.visit': 'Visit Us',
+    'village.sections': 'Sections on this page',
+    'village.location': 'Location',
+    'visit.pageTitle': 'Plan Your Visit',
+    'visit.pageDescription':
+        'Opening hours, how to book, and the terms before you come to Pasirnanjung Geulis.',
+    'visit.hoursLabel': 'Opening hours',
+    'visit.steps': 'How to Book',
+    'visit.step1.title': 'Choose a facility',
+    'visit.step1.text': 'Decide which facility you would like to use.',
+    'visit.step2.title': 'Check dates & fill in the form',
+    'visit.step2.text':
+        'See the available dates on the facility page, then fill in the booking form.',
+    'visit.step3.title': 'Pay & upload proof',
+    'visit.step3.text':
+        'Pay by transfer or QRIS for the exact amount, then upload your proof of payment.',
+    'visit.step4.title': 'Confirmed by the managers',
+    'visit.step4.text':
+        'The village enterprise (BUMDes) checks your payment and confirms the booking.',
+    'visit.seeFacilities': 'See Facilities & Prices',
+    'visit.needHelp': 'Still have a question?',
+    'visit.askMessage':
+        'Hello, I would like to ask about visiting and booking at Pasirnanjung Geulis Tourism Village.',
 };
 
 const messages: Record<Locale, Record<MessageKey, string>> = { id, en };
