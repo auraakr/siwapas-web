@@ -9,6 +9,7 @@ use App\Domain\Content\Models\Article;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\Faq;
 use App\Domain\Content\Models\LocalProduct;
+use App\Domain\Content\Models\Poster;
 use App\Domain\Content\Services\SiteContact;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
@@ -36,6 +37,7 @@ class GetLandingPageContent
             'activities' => $this->destinations(DestinationType::Activity, 3),
             'facilities' => $this->facilities(),
             'products' => $this->products(),
+            'posters' => $this->posters(),
             'events' => $this->events(),
             'articles' => $this->articles(),
             'faqs' => $this->faqs(),
@@ -128,6 +130,28 @@ class GetLandingPageContent
                     'whatsapp_url' => $this->siteContact->whatsappUrl($product->whatsapp_number),
                 ];
             })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Posters without an uploaded image are skipped, since the carousel has nothing to show for them.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function posters(): array
+    {
+        return Poster::query()
+            ->with('media')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Poster $poster): array => [
+                'id' => $poster->id,
+                'title' => $poster->title,
+                'alt' => $poster->alt ?: $poster->title,
+                'image' => $this->imageOf($poster),
+            ])
+            ->filter(fn (array $poster): bool => $poster['image'] !== null)
             ->values()
             ->all();
     }

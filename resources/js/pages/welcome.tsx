@@ -7,6 +7,7 @@ import FacilitiesBanner from '@/components/landing/facilities-banner';
 import FinalCta from '@/components/landing/final-cta';
 import Hero from '@/components/landing/hero';
 import Partners from '@/components/landing/partners';
+import Posters from '@/components/landing/posters';
 import Products from '@/components/landing/products';
 import Stories from '@/components/landing/stories';
 import Testimonials from '@/components/landing/testimonials';
@@ -21,6 +22,7 @@ export default function Welcome({
     activities,
     facilities,
     products,
+    posters,
     events,
     articles,
     faqs,
@@ -74,6 +76,7 @@ export default function Welcome({
             />
             <FacilitiesBanner items={facilities} />
             <Products products={products} />
+            <Posters items={posters} />
             <Events items={events} />
             <Stories articles={articles} />
             <Testimonials />

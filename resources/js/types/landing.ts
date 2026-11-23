@@ -37,6 +37,13 @@ export type Product = {
     whatsapp_url: string | null;
 };
 
+export type PosterItem = {
+    id: number;
+    title: string;
+    alt: string;
+    image: string;
+};
+
 export type EventSummary = {
     slug: string;
     title: string;
@@ -67,6 +74,7 @@ export type LandingProps = {
     activities: Destination[];
     facilities: FacilitySummary[];
     products: Product[];
+    posters: PosterItem[];
     events: EventSummary[];
     articles: ArticleSummary[];
     faqs: Faq[];

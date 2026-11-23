@@ -11,6 +11,7 @@ use App\Domain\Content\Models\Article;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\Faq;
 use App\Domain\Content\Models\LocalProduct;
+use App\Domain\Content\Models\Poster;
 use App\Domain\Event\Models\Event;
 use App\Domain\Event\Models\EventRegistration;
 use App\Filament\Resources\ArticleResource\Pages\CreateArticle;
@@ -29,8 +30,11 @@ use App\Filament\Resources\FacilityResource\Pages\ListFacilities;
 use App\Filament\Resources\FaqResource\Pages\CreateFaq;
 use App\Filament\Resources\FaqResource\Pages\ListFaqs;
 use App\Filament\Resources\LocalProductResource\Pages\CreateLocalProduct;
+use App\Filament\Resources\PosterResource\Pages\CreatePoster;
+use App\Filament\Resources\PosterResource\Pages\ListPosters;
 use App\Filament\Resources\PricingRuleResource\Pages\CreatePricingRule;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -270,5 +274,40 @@ describe('tanya jawab', function () {
             ->fillForm(['sort_order' => 0])
             ->call('create')
             ->assertHasFormErrors(['question' => 'required', 'answer' => 'required']);
+    });
+});
+
+describe('poster', function () {
+    it('creates a poster with an image, alt and title', function () {
+        Livewire::test(CreatePoster::class)
+            ->fillForm([
+                'image' => UploadedFile::fake()->image('poster.jpg'),
+                'title' => 'Festival Pasirnanjung',
+                'alt' => 'Poster festival desa',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $poster = Poster::sole();
+        expect($poster->getTranslation('title', 'id'))->toBe('Festival Pasirnanjung')
+            ->and($poster->getTranslation('alt', 'id'))->toBe('Poster festival desa')
+            ->and($poster->getFirstMedia('default'))->not->toBeNull();
+    });
+
+    it('requires an image and a title', function () {
+        Livewire::test(CreatePoster::class)
+            ->fillForm(['title' => null])
+            ->call('create')
+            ->assertHasFormErrors(['image' => 'required', 'title' => 'required']);
+    });
+
+    it('lists and deletes posters', function () {
+        $poster = Poster::factory()->create();
+
+        Livewire::test(ListPosters::class)
+            ->assertCanSeeTableRecords([$poster])
+            ->callTableAction('delete', $poster);
+
+        expect(Poster::count())->toBe(0);
     });
 });

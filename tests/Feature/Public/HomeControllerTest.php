@@ -7,9 +7,11 @@ use App\Domain\Content\Models\Article;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\Faq;
 use App\Domain\Content\Models\LocalProduct;
+use App\Domain\Content\Models\Poster;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use Database\Seeders\SampleDataSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -22,6 +24,7 @@ it('renders the landing page even when there is no content yet', function () {
             ->where('activities', [])
             ->where('facilities', [])
             ->where('products', [])
+            ->where('posters', [])
             ->where('events', [])
             ->where('articles', [])
             ->where('faqs', [])
@@ -180,4 +183,21 @@ it('fills every landing page section from the sample data seeder, without duplic
             ->has('articles', 3)
             ->has('faqs', 3)
             ->has('facilities', 2));
+});
+
+it('lists posters that have an image, in order, falling back to the title for alt', function () {
+    $second = Poster::factory()->create(['title' => ['id' => 'Kedua'], 'alt' => null]);
+    $first = Poster::factory()->create(['title' => ['id' => 'Pertama'], 'alt' => ['id' => 'Alt pertama']]);
+    Poster::factory()->create(['title' => ['id' => 'Tanpa gambar']]);
+
+    foreach ([$first, $second] as $poster) {
+        $poster->addMedia(UploadedFile::fake()->image('p.jpg'))->toMediaCollection('default');
+    }
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('posters', 2)
+            ->where('posters.0.title', 'Pertama')
+            ->where('posters.0.alt', 'Alt pertama')
+            ->where('posters.1.alt', 'Kedua'));
 });
