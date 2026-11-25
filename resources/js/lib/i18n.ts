@@ -5,7 +5,7 @@ export type Locale = 'id' | 'en';
 const id = {
     // Navigation
     'nav.home': 'Beranda',
-    'nav.explore': 'Destinasi & UMKM',
+    'nav.explore': 'Jelajah',
     'nav.explore.tourism': 'Wisata',
     'nav.explore.village': 'Karya Desa',
     'nav.destinations': 'Destinasi',
@@ -316,7 +316,7 @@ export type MessageKey = keyof typeof id;
 
 const en: Record<MessageKey, string> = {
     'nav.home': 'Home',
-    'nav.explore': 'Destinations & Products',
+    'nav.explore': 'Explore',
     'nav.explore.tourism': 'Tourism',
     'nav.explore.village': 'Village Works',
     'nav.destinations': 'Destinations',
