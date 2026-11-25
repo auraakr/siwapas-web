@@ -25,6 +25,7 @@ class SampleDataSeeder extends Seeder
     public function run(): void
     {
         $this->seedLandingContent();
+        $this->call(SampleProductSeeder::class);
 
         Facility::updateOrCreate(['slug' => 'aula-desa'], [
             'name' => ['id' => 'Aula Desa', 'en' => 'Village Hall'],

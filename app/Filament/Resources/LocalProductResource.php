@@ -41,13 +41,20 @@ class LocalProductResource extends Resource
                 ->regex('/^(\+62|62|0)8[0-9]{7,12}$/')
                 ->validationMessages(['regex' => 'Gunakan format 08xxxxxxxxxx.'])
                 ->maxLength(30),
-            Forms\Components\TextInput::make('sort_order')->label('Urutan')->numeric()->default(0)->required(),
+            Forms\Components\TextInput::make('sort_order')
+                ->label('Urutan')
+                ->helperText('Angka kecil tampil lebih dulu. Urutan juga bisa diatur dengan menyeret baris di daftar produk.')
+                ->numeric()
+                ->default(0)
+                ->required(),
             Forms\Components\SpatieMediaLibraryFileUpload::make('images')
                 ->label('Foto')
                 ->collection('default')
                 ->image()
                 ->multiple()
+                ->reorderable()
                 ->maxSize(5120)
+                ->helperText('Foto pertama menjadi foto utama. JPG atau PNG, maksimal 5 MB.')
                 ->columnSpanFull(),
             Forms\Components\Toggle::make('is_published')->label('Tampilkan di situs')->default(true),
         ])->columns(2);
@@ -60,10 +67,11 @@ class LocalProductResource extends Resource
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('images')->label('Foto')->collection('default')->limit(1)->circular(),
                 Tables\Columns\TextColumn::make('name')->label('Produk')->searchable(),
                 Tables\Columns\TextColumn::make('maker_name')->label('Pembuat')->searchable(),
-                Tables\Columns\IconColumn::make('is_published')->label('Tampil')->boolean(),
+                Tables\Columns\ToggleColumn::make('is_published')->label('Tampil'),
                 Tables\Columns\TextColumn::make('sort_order')->label('Urutan')->sortable(),
             ])
             ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

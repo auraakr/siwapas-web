@@ -5,12 +5,12 @@ export type Locale = 'id' | 'en';
 const id = {
     // Navigation
     'nav.home': 'Beranda',
-    'nav.explore': 'Jelajahi',
+    'nav.explore': 'Destinasi & UMKM',
     'nav.explore.tourism': 'Wisata',
     'nav.explore.village': 'Karya Desa',
     'nav.destinations': 'Destinasi',
     'nav.activities': 'Pengalaman Wisata',
-    'nav.products': 'Produk Desa',
+    'nav.products': 'Produk UMKM',
     'nav.stories': 'Cerita Desa',
     'nav.services': 'Layanan',
     'nav.services.booking': 'Pemesanan',
@@ -86,8 +86,9 @@ const id = {
     'products.title': 'Produk Pilihan Desa',
     'products.description':
         'Oleh-oleh dan karya UMKM warga. Hubungi pembuatnya langsung untuk memesan.',
-    'products.contact': 'Hubungi via WhatsApp',
-    'products.message': 'Halo, saya tertarik dengan {name}.',
+    'products.contact': 'Pesan via WhatsApp',
+    'products.message':
+        'Halo, saya ingin memesan {name}. Apakah produk ini masih tersedia?',
     'posters.eyebrow': 'Informasi Terbaru',
     'posters.title': 'Poster & Pengumuman',
     'posters.prev': 'Poster sebelumnya',
@@ -132,9 +133,9 @@ const id = {
     'gallery.next': 'Berikutnya',
 
     // Destination pages
-    'destinations.indexTitle': 'Destinasi & Pengalaman',
+    'destinations.indexTitle': 'Destinasi & UMKM',
     'destinations.indexDescription':
-        'Temukan tempat dan kegiatan yang bisa kamu nikmati selama berkunjung ke Pasirnanjung Geulis.',
+        'Temukan tempat, kegiatan, dan karya UMKM warga yang bisa kamu nikmati selama berkunjung ke Pasirnanjung Geulis.',
     'destinations.empty': 'Destinasi akan segera tersedia.',
     'destinations.viewAll': 'Lihat semua destinasi →',
     'destinations.back': 'Semua destinasi',
@@ -293,18 +294,34 @@ const id = {
     'visit.needHelp': 'Masih ada yang ingin ditanyakan?',
     'visit.askMessage':
         'Halo, saya ingin bertanya tentang kunjungan dan reservasi di Desa Wisata Pasirnanjung Geulis.',
+    // Destinations & UMKM page
+    'umkm.tabDestinations': 'Destinasi',
+    'umkm.tabProducts': 'Produk UMKM',
+    'umkm.eyebrow': 'Produk UMKM',
+    'umkm.title': 'Karya dari Tangan Warga',
+    'umkm.description':
+        'Aneka produk dan kuliner UMKM dibuat oleh warga desa sendiri. Setiap pembelian ikut mendukung usaha masyarakat.',
+    'umkm.viewAll': 'Lihat Semua Produk',
+    'umkm.details': 'Lihat detail {name}',
+    'umkm.maker': 'Dibuat oleh',
+    'umkm.photo': 'Foto {number} {name}',
+    'umkm.noDescription':
+        'Hubungi pembuatnya untuk informasi lengkap produk ini.',
+    'umkm.emptyTitle': 'Produk UMKM segera hadir',
+    'umkm.emptyText':
+        'Pengelola sedang menyiapkan daftar produk warga. Kunjungi lagi halaman ini dalam waktu dekat.',
 } as const;
 
 export type MessageKey = keyof typeof id;
 
 const en: Record<MessageKey, string> = {
     'nav.home': 'Home',
-    'nav.explore': 'Explore',
+    'nav.explore': 'Destinations & Products',
     'nav.explore.tourism': 'Tourism',
     'nav.explore.village': 'Village Works',
     'nav.destinations': 'Destinations',
     'nav.activities': 'Experiences',
-    'nav.products': 'Village Products',
+    'nav.products': 'Local Products',
     'nav.stories': 'Village Stories',
     'nav.services': 'Services',
     'nav.services.booking': 'Booking',
@@ -375,8 +392,9 @@ const en: Record<MessageKey, string> = {
     'products.title': 'Selected Village Products',
     'products.description':
         'Souvenirs and crafts by village micro-businesses. Contact the maker directly to order.',
-    'products.contact': 'Contact via WhatsApp',
-    'products.message': 'Hello, I am interested in {name}.',
+    'products.contact': 'Order via WhatsApp',
+    'products.message':
+        'Hello, I would like to order {name}. Is it still available?',
     'posters.eyebrow': 'Latest Updates',
     'posters.title': 'Posters & Announcements',
     'posters.prev': 'Previous poster',
@@ -418,9 +436,9 @@ const en: Record<MessageKey, string> = {
     'gallery.prev': 'Previous',
     'gallery.next': 'Next',
 
-    'destinations.indexTitle': 'Destinations & Experiences',
+    'destinations.indexTitle': 'Destinations & Local Products',
     'destinations.indexDescription':
-        'Find the places and activities you can enjoy while visiting Pasirnanjung Geulis.',
+        'Discover places, experiences, and products made by local businesses to enjoy during your visit to Pasirnanjung Geulis.',
     'destinations.empty': 'Destinations will be available soon.',
     'destinations.viewAll': 'See all destinations →',
     'destinations.back': 'All destinations',
@@ -575,6 +593,21 @@ const en: Record<MessageKey, string> = {
     'visit.needHelp': 'Still have a question?',
     'visit.askMessage':
         'Hello, I would like to ask about visiting and booking at Pasirnanjung Geulis Tourism Village.',
+    'umkm.tabDestinations': 'Destinations',
+    'umkm.tabProducts': 'Local Products',
+    'umkm.eyebrow': 'Local Products',
+    'umkm.title': "Made by Villagers' Hands",
+    'umkm.description':
+        'Local food and crafts made by the villagers themselves. Every purchase helps support community businesses.',
+    'umkm.viewAll': 'See All Products',
+    'umkm.details': 'View details of {name}',
+    'umkm.maker': 'Made by',
+    'umkm.photo': 'Photo {number} of {name}',
+    'umkm.noDescription':
+        'Contact the maker for full details about this product.',
+    'umkm.emptyTitle': 'Local products coming soon',
+    'umkm.emptyText':
+        'The managers are preparing the list of village products. Please check back soon.',
 };
 
 const messages: Record<Locale, Record<MessageKey, string>> = { id, en };

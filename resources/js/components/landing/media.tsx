@@ -1,4 +1,4 @@
-import { Mountain } from 'lucide-react';
+import { Mountain, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -8,10 +8,12 @@ export default function Media({
     src,
     alt,
     className,
+    icon: Icon = Mountain,
 }: {
     src: string | null;
     alt: string;
     className?: string;
+    icon?: LucideIcon;
 }) {
     if (src) {
         return (
@@ -33,7 +35,7 @@ export default function Media({
                 className,
             )}
         >
-            <Mountain className="size-1/4 max-h-16 min-h-8" />
+            <Icon className="size-1/4 max-h-16 min-h-8" />
         </div>
     );
 }

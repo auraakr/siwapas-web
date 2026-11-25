@@ -3,6 +3,7 @@
 use App\Domain\Content\Models\ContactMessage;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\GalleryItem;
+use App\Domain\Content\Models\LocalProduct;
 use App\Domain\Content\Services\YoutubeUrl;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -75,8 +76,33 @@ it('lists only published destinations', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('site/destinations/index')
+            ->where('tab', 'destinasi')
             ->has('destinations', 1)
             ->has('activities', 1));
+});
+
+it('opens the UMKM tab with every published product in order', function () {
+    $later = LocalProduct::factory()->create(['name' => ['id' => 'Anyaman'], 'sort_order' => 2, 'is_published' => true, 'whatsapp_number' => '081234567890']);
+    $first = LocalProduct::factory()->create(['name' => ['id' => 'Opak'], 'sort_order' => 1, 'is_published' => true, 'whatsapp_number' => null]);
+    LocalProduct::factory()->create(['name' => ['id' => 'Tersembunyi'], 'is_published' => false]);
+
+    $this->get('/destinasi?tab=umkm')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('site/destinations/index')
+            ->where('tab', 'umkm')
+            ->has('products', 2)
+            ->where('products.0.id', $first->id)
+            ->where('products.0.whatsapp_url', null)
+            ->where('products.0.images', [])
+            ->where('products.1.id', $later->id)
+            ->where('products.1.whatsapp_url', 'https://wa.me/6281234567890'));
+});
+
+it('falls back to the destinations tab for an unknown tab', function () {
+    $this->get('/destinasi?tab=apa-saja')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('tab', 'destinasi')->where('products', []));
 });
 
 it('shows a published destination and hides a draft one', function () {

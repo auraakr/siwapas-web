@@ -34,6 +34,7 @@ export type Product = {
     maker: string | null;
     description: string | null;
     image: string | null;
+    images: string[];
     whatsapp_url: string | null;
 };
 

@@ -2,20 +2,27 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Domain\Content\Actions\ListPublishedProducts;
 use App\Domain\Content\Enums\DestinationType;
 use App\Domain\Content\Enums\PublishStatus;
 use App\Domain\Content\Models\Destination;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DestinationController extends Controller
 {
-    public function index(): Response
+    /**
+     * Destinations and UMKM products share one page; `?tab=umkm` opens the products tab directly.
+     */
+    public function index(Request $request, ListPublishedProducts $listPublishedProducts): Response
     {
         return Inertia::render('site/destinations/index', [
+            'tab' => $request->query('tab') === 'umkm' ? 'umkm' : 'destinasi',
             'destinations' => $this->cards(DestinationType::Destination),
             'activities' => $this->cards(DestinationType::Activity),
+            'products' => $listPublishedProducts->handle(),
         ]);
     }
 

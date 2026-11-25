@@ -8,9 +8,7 @@ use App\Domain\Content\Enums\PublishStatus;
 use App\Domain\Content\Models\Article;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\Faq;
-use App\Domain\Content\Models\LocalProduct;
 use App\Domain\Content\Models\Poster;
-use App\Domain\Content\Services\SiteContact;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use Spatie\MediaLibrary\HasMedia;
@@ -20,7 +18,7 @@ use Spatie\MediaLibrary\HasMedia;
  */
 class GetLandingPageContent
 {
-    public function __construct(private SiteContact $siteContact) {}
+    public function __construct(private ListPublishedProducts $listPublishedProducts) {}
 
     /**
      * @return array<string, mixed>
@@ -36,7 +34,7 @@ class GetLandingPageContent
             'destinations' => $this->destinations(DestinationType::Destination, 4),
             'activities' => $this->destinations(DestinationType::Activity, 3),
             'facilities' => $this->facilities(),
-            'products' => $this->products(),
+            'products' => $this->listPublishedProducts->handle(limit: 4),
             'posters' => $this->posters(),
             'events' => $this->events(),
             'articles' => $this->articles(),
@@ -105,31 +103,6 @@ class GetLandingPageContent
                 'capacity' => $facility->capacity,
                 'base_price' => $facility->base_price,
             ])
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function products(): array
-    {
-        return LocalProduct::query()
-            ->with('media')
-            ->where('is_published', true)
-            ->orderBy('sort_order')
-            ->limit(6)
-            ->get()
-            ->map(function (LocalProduct $product): array {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'maker' => $product->maker_name,
-                    'description' => $product->description,
-                    'image' => $this->imageOf($product),
-                    'whatsapp_url' => $this->siteContact->whatsappUrl($product->whatsapp_number),
-                ];
-            })
             ->values()
             ->all();
     }
