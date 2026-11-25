@@ -13,6 +13,7 @@ import {
 } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { home, login } from '@/routes';
+import destinations from '@/routes/destinations';
 import events from '@/routes/events';
 import facilities from '@/routes/facilities';
 
@@ -33,6 +34,10 @@ const navigation: NavItem[] = [
             {
                 heading: 'nav.explore.tourism',
                 links: [
+                    {
+                        label: 'nav.destinations',
+                        href: destinations.index().url,
+                    },
                     { label: 'nav.facilities', href: facilities.index().url },
                     { label: 'nav.activities', href: '/#pengalaman' },
                     { label: 'nav.events', href: events.index().url },
@@ -41,7 +46,11 @@ const navigation: NavItem[] = [
             {
                 heading: 'nav.explore.village',
                 links: [
-                    { label: 'nav.products', href: '/#produk' },
+                    {
+                        label: 'nav.products',
+                        href: destinations.index({ query: { tab: 'umkm' } })
+                            .url,
+                    },
                     { label: 'nav.stories', href: '/#cerita' },
                 ],
             },
@@ -51,7 +60,7 @@ const navigation: NavItem[] = [
     { label: 'nav.gallery', href: '/galeri' },
 ];
 
-const pathOf = (href: string): string => href.split('#')[0] || '/';
+const pathOf = (href: string): string => href.split(/[?#]/)[0] || '/';
 
 function NavAnchor({
     href,

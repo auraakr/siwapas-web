@@ -24,6 +24,7 @@ class SampleDataSeeder extends Seeder
     public function run(): void
     {
         $this->seedLandingContent();
+        $this->call(SampleProductSeeder::class);
 
         $this->call(FacilitySeeder::class);
 

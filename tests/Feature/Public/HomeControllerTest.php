@@ -66,6 +66,15 @@ it('shows active facilities with their starting price', function () {
             ->where('facilities.0.base_price', 1500000));
 });
 
+it('previews at most four products, in the order the manager set', function () {
+    LocalProduct::factory()->count(5)->sequence(fn ($sequence) => ['sort_order' => 5 - $sequence->index, 'is_published' => true])->create();
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('products', 4)
+            ->where('products.0.id', LocalProduct::query()->where('sort_order', 1)->value('id')));
+});
+
 it('shows only published products and turns the WhatsApp number into a link', function () {
     LocalProduct::factory()->create(['name' => ['id' => 'Keripik'], 'whatsapp_number' => '081234567890', 'is_published' => true]);
     LocalProduct::factory()->create(['name' => ['id' => 'Tanpa nomor'], 'whatsapp_number' => null, 'is_published' => true, 'sort_order' => 5]);
@@ -178,7 +187,7 @@ it('fills every landing page section from the sample data seeder, without duplic
         ->assertInertia(fn (Assert $page) => $page
             ->has('destinations', 4)
             ->has('activities', 3)
-            ->has('products', 3)
+            ->has('products', 4)
             ->has('events', 3)
             ->has('articles', 3)
             ->has('faqs', 3)

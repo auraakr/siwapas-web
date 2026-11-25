@@ -1,15 +1,20 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
 import { home } from '@/routes';
+import destinations from '@/routes/destinations';
 import events from '@/routes/events';
 import facilities from '@/routes/facilities';
 
 // "Sewa Fasilitas" lives in the Services column, so it is not repeated here.
 const exploreLinks: { label: MessageKey; href: string }[] = [
     { label: 'nav.profile', href: '/profil-desa' },
+    { label: 'nav.destinations', href: destinations.index().url },
     { label: 'nav.activities', href: '/#pengalaman' },
     { label: 'nav.gallery', href: '/galeri' },
-    { label: 'nav.products', href: '/#produk' },
+    {
+        label: 'nav.products',
+        href: destinations.index({ query: { tab: 'umkm' } }).url,
+    },
     { label: 'nav.stories', href: '/#cerita' },
 ];
 

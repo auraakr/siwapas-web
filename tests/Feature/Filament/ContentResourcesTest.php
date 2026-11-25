@@ -30,6 +30,7 @@ use App\Filament\Resources\FacilityResource\Pages\ListFacilities;
 use App\Filament\Resources\FaqResource\Pages\CreateFaq;
 use App\Filament\Resources\FaqResource\Pages\ListFaqs;
 use App\Filament\Resources\LocalProductResource\Pages\CreateLocalProduct;
+use App\Filament\Resources\LocalProductResource\Pages\ListLocalProducts;
 use App\Filament\Resources\PosterResource\Pages\CreatePoster;
 use App\Filament\Resources\PosterResource\Pages\ListPosters;
 use App\Filament\Resources\PricingRuleResource\Pages\CreatePricingRule;
@@ -100,6 +101,18 @@ describe('produk lokal', function () {
             ->assertHasNoFormErrors();
 
         expect(LocalProduct::sole()->maker_name)->toBe('Ibu Siti');
+    });
+
+    it('hides a product and reorders products from the list', function () {
+        $first = LocalProduct::factory()->create(['sort_order' => 1, 'is_published' => true]);
+        $second = LocalProduct::factory()->create(['sort_order' => 2, 'is_published' => true]);
+
+        Livewire::test(ListLocalProducts::class)
+            ->call('updateTableColumnState', 'is_published', (string) $first->getKey(), false)
+            ->call('reorderTable', [(string) $second->getKey(), (string) $first->getKey()]);
+
+        expect($first->fresh()->is_published)->toBeFalse()
+            ->and($second->fresh()->sort_order)->toBeLessThan($first->fresh()->sort_order);
     });
 });
 
