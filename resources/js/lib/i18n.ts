@@ -360,6 +360,11 @@ const id = {
     'order.fullPrice': 'Harga lunas',
     'order.dpPart': 'DP {percent}%',
     'order.uniqueCodeOnDp': 'Kode unik (ditambahkan ke DP)',
+    'order.uniqueCodeWhat': 'Apa itu kode unik?',
+    'order.uniqueCodeHelpDp':
+        'Kode unik adalah angka kecil (1–999 rupiah) yang ditambahkan ke transfer DP. Karena nominalnya jadi khas, pengelola bisa langsung mengenali transfer milikmu di antara transfer lain. Kode ini hanya ditambahkan sekali di transfer DP; sisa pelunasan tidak berubah.',
+    'order.uniqueCodeHelp':
+        'Kode unik adalah angka kecil (1–999 rupiah) yang ditambahkan ke nominal transfer. Karena nominalnya jadi khas, pengelola bisa langsung mengenali transfer milikmu di antara transfer lain.',
     'order.remaining': 'Sisa pelunasan',
     'order.transferDp': 'Transfer DP sekarang',
     'order.transferSettlement': 'Transfer pelunasan',
@@ -716,6 +721,11 @@ const en: Record<MessageKey, string> = {
     'order.fullPrice': 'Full price',
     'order.dpPart': '{percent}% down payment',
     'order.uniqueCodeOnDp': 'Unique code (added to the down payment)',
+    'order.uniqueCodeWhat': 'What is the unique code?',
+    'order.uniqueCodeHelpDp':
+        'The unique code is a small amount (1–999 rupiah) added to the down payment transfer. It makes your amount distinctive, so the managers can recognise your transfer among others right away. It is added once, to the down payment only; the remaining balance does not change.',
+    'order.uniqueCodeHelp':
+        'The unique code is a small amount (1–999 rupiah) added to the transfer. It makes your amount distinctive, so the managers can recognise your transfer among others right away.',
     'order.remaining': 'Remaining balance',
     'order.transferDp': 'Transfer the down payment now',
     'order.transferSettlement': 'Transfer the balance',

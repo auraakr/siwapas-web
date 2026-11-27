@@ -1,5 +1,6 @@
 import { Form, Head, usePage } from '@inertiajs/react';
-import { Check, Clock, MessageCircle } from 'lucide-react';
+import { Check, Clock, Info, MessageCircle } from 'lucide-react';
+import { useId, useState } from 'react';
 import { store } from '@/actions/App/Http/Controllers/Public/PaymentProofController';
 import CopyButton from '@/components/site/copy-button';
 import FormField from '@/components/site/form-field';
@@ -206,6 +207,53 @@ function AmountRow({
             >
                 {value}
             </dd>
+        </div>
+    );
+}
+
+/**
+ * The unique code row with an (i) button that opens a short explanation. A tap toggles it, so it
+ * works on phones where hover tooltips do not.
+ */
+function UniqueCodeRow({
+    label,
+    value,
+    help,
+}: {
+    label: string;
+    value: string;
+    help: string;
+}) {
+    const { t } = useTranslation();
+    const [open, setOpen] = useState(false);
+    const helpId = useId();
+
+    return (
+        <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                    {label}
+                    <button
+                        type="button"
+                        onClick={() => setOpen((isOpen) => !isOpen)}
+                        aria-expanded={open}
+                        aria-controls={helpId}
+                        aria-label={t('order.uniqueCodeWhat')}
+                        title={t('order.uniqueCodeWhat')}
+                        className="inline-flex size-6 items-center justify-center rounded-full text-clay-dark transition hover:bg-clay/10 focus-visible:ring-2 focus-visible:ring-clay focus-visible:outline-none"
+                    >
+                        <Info className="size-4" aria-hidden="true" />
+                    </button>
+                </span>
+                <p
+                    id={helpId}
+                    hidden={!open}
+                    className="mt-1.5 rounded-md bg-cream px-3 py-2 text-xs leading-relaxed text-forest-900"
+                >
+                    {help}
+                </p>
+            </dt>
+            <dd className="shrink-0">{value}</dd>
         </div>
     );
 }
@@ -526,9 +574,10 @@ export default function OrderShow({
                                 })}
                                 value={formatRupiah(order.dp_amount ?? 0)}
                             />
-                            <AmountRow
+                            <UniqueCodeRow
                                 label={t('order.uniqueCodeOnDp')}
                                 value={`+${order.unique_code}`}
+                                help={t('order.uniqueCodeHelpDp')}
                             />
                             <AmountRow
                                 label={t('order.remaining')}
@@ -541,9 +590,10 @@ export default function OrderShow({
                                 label={t('order.subtotal')}
                                 value={formatRupiah(order.subtotal)}
                             />
-                            <AmountRow
+                            <UniqueCodeRow
                                 label={t('order.uniqueCode')}
-                                value={String(order.unique_code)}
+                                value={`+${order.unique_code}`}
+                                help={t('order.uniqueCodeHelp')}
                             />
                         </dl>
                     )}
