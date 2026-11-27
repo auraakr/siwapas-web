@@ -36,10 +36,14 @@ class ReservationController extends Controller
                 ),
             ));
         } catch (BookingTooSoon) {
+            // Same-day and very short-notice rentals are arranged with the managers directly.
+            $whatsapp = config('siwapas.contact.whatsapp');
+            $contact = filled($whatsapp) ? " {$whatsapp}" : '';
+
             return back()->withInput()->withErrors([
                 'check_in' => $english
-                    ? 'This check-in date is too close: there is not enough time left to pay the down payment online. Please choose a later date or contact the managers via WhatsApp.'
-                    : 'Tanggal check-in terlalu dekat sehingga waktu untuk membayar DP secara online tidak cukup. Silakan pilih tanggal lain atau hubungi pengelola via WhatsApp.',
+                    ? "This check-in date is too close: there is not enough time left to pay the down payment online. Please choose a later date, or contact the managers via WhatsApp{$contact} for a short-notice rental."
+                    : "Tanggal check-in terlalu dekat sehingga waktu untuk membayar DP secara online tidak cukup. Silakan pilih tanggal lain, atau hubungi pengelola via WhatsApp{$contact} untuk sewa mendadak.",
             ]);
         } catch (FacilityUnavailable) {
             return back()->withInput()->withErrors([

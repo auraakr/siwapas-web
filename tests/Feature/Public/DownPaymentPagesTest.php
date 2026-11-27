@@ -62,7 +62,8 @@ describe('down payment deadline', function () {
         'check-in today' => ['2026-11-15 03:00:00', '2026-11-15'],
     ]);
 
-    it('tells the visitor to pick another date or contact the managers', function () {
+    it('tells the visitor to pick another date or contact the managers on their WhatsApp number', function () {
+        config(['siwapas.contact.whatsapp' => '081211112222']);
         $this->travelTo('2026-11-15 16:30:00');
         $facility = Facility::factory()->create(['capacity' => 10]);
 
@@ -72,7 +73,7 @@ describe('down payment deadline', function () {
             'guests' => 2,
             'customer_name' => 'Budi',
             'customer_phone' => '081234567890',
-        ])->assertSessionHasErrors(['check_in' => 'Tanggal check-in terlalu dekat sehingga waktu untuk membayar DP secara online tidak cukup. Silakan pilih tanggal lain atau hubungi pengelola via WhatsApp.']);
+        ])->assertSessionHasErrors(['check_in' => 'Tanggal check-in terlalu dekat sehingga waktu untuk membayar DP secara online tidak cukup. Silakan pilih tanggal lain, atau hubungi pengelola via WhatsApp 081211112222 untuk sewa mendadak.']);
 
         expect(Order::count())->toBe(0)->and(Reservation::count())->toBe(0);
     });

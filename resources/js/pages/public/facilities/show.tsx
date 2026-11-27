@@ -120,7 +120,9 @@ function PriceSummary({
                             rel="noopener noreferrer"
                             className="mt-1 inline-block font-semibold underline"
                         >
-                            {t('booking.askManager')}
+                            {t('booking.askManager', {
+                                phone: site.contact.whatsapp ?? '',
+                            })}
                         </a>
                     )}
                 </div>

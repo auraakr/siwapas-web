@@ -323,7 +323,7 @@ const id = {
         'Tanggal check-in ini terlalu dekat untuk membayar DP secara online. Pilih tanggal lain atau hubungi pengelola.',
     'booking.datesTaken':
         'Tanggal ini sudah terisi. Silakan pilih tanggal lain.',
-    'booking.askManager': 'Hubungi pengelola via WhatsApp',
+    'booking.askManager': 'Hubungi pengelola via WhatsApp {phone}',
     'booking.askMessage':
         'Halo, saya ingin memesan {name} untuk tanggal dekat. Apakah masih bisa?',
     'order.status.dp_paid': 'DP lunas, booking terkonfirmasi',
@@ -680,7 +680,7 @@ const en: Record<MessageKey, string> = {
         'This check-in date is too close to pay the down payment online. Choose another date or contact the managers.',
     'booking.datesTaken':
         'These dates are already booked. Please choose other dates.',
-    'booking.askManager': 'Contact the managers via WhatsApp',
+    'booking.askManager': 'Contact the managers via WhatsApp {phone}',
     'booking.askMessage':
         'Hello, I would like to book {name} for a date soon. Is that still possible?',
     'order.status.dp_paid': 'Down payment received, booking confirmed',
