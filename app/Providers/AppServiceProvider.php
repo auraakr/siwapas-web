@@ -6,6 +6,7 @@ use App\Http\Responses\AdminLogoutResponse;
 use Carbon\CarbonImmutable;
 use Filament\Http\Responses\Auth\Contracts\LogoutResponse;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,9 +28,24 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
+    /**
+     * Applied here rather than in bootstrap/app.php so it is read from the (cached) config.
+     */
+    private function configureTrustedProxies(): void
+    {
+        $proxies = config('siwapas.trusted_proxies');
+
+        if (! is_string($proxies) || trim($proxies) === '') {
+            return;
+        }
+
+        TrustProxies::at(trim($proxies) === '*' ? '*' : array_map('trim', explode(',', $proxies)));
+    }
+
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureTrustedProxies();
         $this->configureRateLimiting();
         $this->configureTranslationFallback();
     }

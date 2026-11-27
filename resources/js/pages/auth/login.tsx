@@ -15,9 +15,14 @@ import PasskeyVerify from '@/components/passkey-verify';
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    canRegister: boolean;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({
+    status,
+    canResetPassword,
+    canRegister,
+}: Props) {
     return (
         <>
             <Head title="Masuk" />
@@ -96,16 +101,18 @@ export default function Login({ status, canResetPassword }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Belum punya akun?{' '}
-                            <TextLink
-                                href={register()}
-                                tabIndex={5}
-                                className="text-clay decoration-clay/40 hover:decoration-clay!"
-                            >
-                                Daftar
-                            </TextLink>
-                        </div>
+                        {canRegister && (
+                            <div className="text-center text-sm text-muted-foreground">
+                                Belum punya akun?{' '}
+                                <TextLink
+                                    href={register()}
+                                    tabIndex={5}
+                                    className="text-clay decoration-clay/40 hover:decoration-clay!"
+                                >
+                                    Daftar
+                                </TextLink>
+                            </div>
+                        )}
                     </>
                 )}
             </Form>

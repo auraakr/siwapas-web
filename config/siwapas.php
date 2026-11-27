@@ -69,6 +69,19 @@ return [
     'seed_sample_data' => (bool) env('SEED_SAMPLE_DATA', false),
 
     /*
+    | Hosts without a long-running queue worker (Railway trial, Hostinger shared hosting) can let
+    | the scheduler drain the queue every minute instead.
+    */
+    'queue_via_scheduler' => (bool) env('QUEUE_VIA_SCHEDULER', false),
+
+    /*
+    | Proxies whose X-Forwarded-* headers are trusted: "*" behind Railway's proxy so URLs and
+    | signed URLs use https; empty where no proxy sits in front (Hostinger shared hosting), so
+    | visitors cannot spoof their IP for rate limiting. A comma-separated list also works.
+    */
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    /*
     | Languages visitors can switch between on the public site. Content columns hold one
     | translation per language; the default language is shown until a visitor chooses another.
     */

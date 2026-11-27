@@ -11,7 +11,7 @@ Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content,
 
 ## Infrastructure
 - Database: Supabase PostgreSQL, reached through the Session pooler (port 5432) with DB_SSLMODE=require. The btree_gist extension must exist for the reservation exclusion constraint (migration 000019).
-- Trial hosting: Railway. Production after client sign-off: Hostinger.
+- Trial hosting: Railway (Dockerfile + FrankenPHP; see DEPLOY.md). Production after client sign-off: Hostinger (outline in DEPLOY.md).
 - Credentials live only in .env (git-ignored); .env.example holds placeholders.
 - Tests run on in-memory SQLite (phpunit.xml) and never touch Supabase. The exclusion-constraint test (ReservationExclusionTest) is skipped unless it runs on a PostgreSQL database whose name contains "test".
 

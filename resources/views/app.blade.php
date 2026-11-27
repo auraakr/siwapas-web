@@ -40,7 +40,31 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
+            {{--
+                Without SSR these server-side defaults are what link previews (WhatsApp, Facebook) and
+                the first crawl see. The data-inertia attribute lets each page's <Head> replace them in
+                the browser. With SSR on, the page's own tags are rendered here instead.
+            --}}
+            @php
+                $siteName = 'Desa Wisata Pasirnanjung Geulis';
+                $siteDescription = app()->getLocale() === 'en'
+                    ? 'Pasirnanjung Geulis Tourism Village: destinations, facility rental, events and local products made by villagers.'
+                    : 'Desa Wisata Pasirnanjung Geulis: destinasi, sewa fasilitas, event, dan produk UMKM karya warga.';
+                $siteImage = rescue(
+                    fn () => app(\App\Domain\Content\Services\SiteSettings::class)->imageUrl(\App\Domain\Content\Models\SiteSetting::HERO_IMAGE),
+                    null,
+                    false,
+                ) ?? (is_file(public_path('images/landing/about.jpg')) ? asset('images/landing/about.jpg') : asset('images/brand/icon-512.png'));
+            @endphp
+            <title data-inertia>{{ $siteName }}</title>
+            <meta data-inertia name="description" content="{{ $siteDescription }}">
+            <meta data-inertia property="og:type" content="website">
+            <meta data-inertia property="og:site_name" content="{{ $siteName }}">
+            <meta data-inertia property="og:title" content="{{ $siteName }}">
+            <meta data-inertia property="og:description" content="{{ $siteDescription }}">
+            <meta data-inertia property="og:url" content="{{ url()->current() }}">
+            <meta data-inertia property="og:image" content="{{ $siteImage }}">
+            <meta data-inertia name="twitter:card" content="summary_large_image">
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

@@ -60,17 +60,37 @@ return [
             'report' => false,
         ],
 
-        'supabase' => [
+        /*
+        | Supabase Storage through its S3-compatible API (Project Settings > Storage > S3 access keys).
+        | Media (photos, posters) go to a PUBLIC bucket and are linked directly; payment proofs go to a
+        | PRIVATE bucket and only reach admins through the signed /kelola/bukti/{proof} route.
+        | Which disk is used is chosen in .env (MEDIA_DISK, PAYMENT_PROOF_DISK), so moving back to the
+        | local "public"/"local" disks later needs no code change. No "visibility" is set on purpose:
+        | Supabase decides access per bucket and does not use S3 object ACLs.
+        */
+        'supabase_public' => [
             'driver' => 's3',
             'key' => env('SUPABASE_S3_KEY'),
             'secret' => env('SUPABASE_S3_SECRET'),
-            'region' => env('SUPABASE_S3_REGION', 'ap-southeast-1'),
-            'bucket' => env('SUPABASE_S3_BUCKET'),
+            'region' => env('SUPABASE_S3_REGION', 'ap-northeast-1'),
             'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'bucket' => env('SUPABASE_PUBLIC_BUCKET', 'media'),
+            'url' => env('SUPABASE_PUBLIC_URL'),
             'use_path_style_endpoint' => true,
-            'visibility' => 'private',
-            'throw' => true,
-            'report' => false,
+            'throw' => false,
+            'report' => true,
+        ],
+
+        'supabase_private' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION', 'ap-northeast-1'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'bucket' => env('SUPABASE_PRIVATE_BUCKET', 'payment-proofs'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+            'report' => true,
         ],
 
     ],

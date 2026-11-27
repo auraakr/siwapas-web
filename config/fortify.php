@@ -161,7 +161,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Visitors book without an account; production can switch sign-up off (see DEPLOY.md).
+        ...(env('SIWAPAS_ALLOW_REGISTRATION', true) ? [Features::registration()] : []),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
