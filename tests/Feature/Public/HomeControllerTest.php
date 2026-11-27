@@ -165,17 +165,27 @@ it('passes the hero video link only when it is configured', function () {
 it('uses photos dropped into public/images/landing', function () {
     $directory = public_path('images/landing');
     $hero = $directory.'/hero.jpg';
+    $createdHero = ! File::exists($hero);
 
-    File::ensureDirectoryExists($directory);
-    File::put($hero, 'fake-image');
+    // Never overwrite or delete a real photo that the village has dropped in.
+    if ($createdHero) {
+        File::ensureDirectoryExists($directory);
+        File::put($hero, 'fake-image');
+    }
+
+    $about = collect(['jpg', 'jpeg', 'webp', 'png'])
+        ->map(fn (string $extension): string => "images/landing/about.{$extension}")
+        ->first(fn (string $path): bool => File::exists(public_path($path)));
 
     try {
         $this->get(route('home'))
             ->assertInertia(fn (Assert $page) => $page
                 ->where('images.hero', asset('images/landing/hero.jpg'))
-                ->where('images.about', null));
+                ->where('images.about', $about ? asset($about) : null));
     } finally {
-        File::delete($hero);
+        if ($createdHero) {
+            File::delete($hero);
+        }
     }
 });
 
@@ -191,7 +201,7 @@ it('fills every landing page section from the sample data seeder, without duplic
             ->has('events', 3)
             ->has('articles', 3)
             ->has('faqs', 3)
-            ->has('facilities', 2));
+            ->has('facilities', 3));
 });
 
 it('lists posters that have an image, in order, falling back to the title for alt', function () {
