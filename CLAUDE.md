@@ -5,9 +5,15 @@ Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content,
 ## Stack
 - Laravel (latest stable), PHP 8.3+
 - Inertia.js + React + TypeScript with SSR, Tailwind CSS
-- Filament admin panel at /admin
-- PostgreSQL 16+, Redis (cache, queue, locks)
+- Filament admin panel at /admin. It is the only admin UI; do not build admin screens in Inertia. The only admin route outside Filament is /kelola/bukti/{proof}, which serves payment proofs through temporary signed URLs.
+- PostgreSQL 16+ (Supabase), Redis (cache, queue, locks)
 - Pest, Larastan, Laravel Pint, ESLint
+
+## Infrastructure
+- Database: Supabase PostgreSQL, reached through the Session pooler (port 5432) with DB_SSLMODE=require. The btree_gist extension must exist for the reservation exclusion constraint (migration 000019).
+- Trial hosting: Railway. Production after client sign-off: Hostinger.
+- Credentials live only in .env (git-ignored); .env.example holds placeholders.
+- Tests run on in-memory SQLite (phpunit.xml) and never touch Supabase. The exclusion-constraint test (ReservationExclusionTest) is skipped unless it runs on a PostgreSQL database whose name contains "test".
 
 ## Architecture rules
 - Modular monolith. Domain code lives in app/Domain/{Content,Catalog,Booking,Event,Payment,Notification}. Each domain has Models, Enums, Actions, Services, Policies, DTOs, Events. Controllers stay thin and call Actions.
