@@ -46,3 +46,6 @@ yarn-error.log
 
 /public/css/filament
 /public/js/filament
+
+# Local code dumps for AI chats
+/kirim-ke-claude.txt
