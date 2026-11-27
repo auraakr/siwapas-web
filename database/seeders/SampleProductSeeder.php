@@ -3,10 +3,13 @@
 namespace Database\Seeders;
 
 use App\Domain\Content\Models\LocalProduct;
+use Database\Seeders\Concerns\GuardsSampleData;
 use Illuminate\Database\Seeder;
 
 class SampleProductSeeder extends Seeder
 {
+    use GuardsSampleData;
+
     /**
      * Seed example UMKM products for demos. Every maker is marked "Contoh" so the products are never
      * mistaken for real village businesses. No WhatsApp number is set, so the order button falls back
@@ -15,6 +18,10 @@ class SampleProductSeeder extends Seeder
      */
     public function run(): void
     {
+        if ($this->sampleDataBlocked()) {
+            return;
+        }
+
         $products = [
             [
                 'maker' => 'Dapur Bu Imas (UMKM Contoh)',

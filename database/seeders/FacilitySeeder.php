@@ -4,15 +4,22 @@ namespace Database\Seeders;
 
 use App\Domain\Catalog\Enums\RentalUnit;
 use App\Domain\Catalog\Models\Facility;
+use Database\Seeders\Concerns\GuardsSampleData;
 use Illuminate\Database\Seeder;
 
 class FacilitySeeder extends Seeder
 {
+    use GuardsSampleData;
+
     /**
      * Seed three example rentable facilities for local development. Safe to re-run: rows are matched by slug.
      */
     public function run(): void
     {
+        if ($this->sampleDataBlocked()) {
+            return;
+        }
+
         Facility::updateOrCreate(['slug' => 'aula-desa'], [
             'name' => ['id' => 'Aula Desa', 'en' => 'Village Hall'],
             'description' => [

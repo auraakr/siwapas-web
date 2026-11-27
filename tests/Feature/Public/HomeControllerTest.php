@@ -190,6 +190,8 @@ it('uses photos dropped into public/images/landing', function () {
 });
 
 it('fills every landing page section from the sample data seeder, without duplicating on a second run', function () {
+    // Tests run with APP_ENV=testing, where sample data is only seeded on explicit request.
+    config(['siwapas.seed_sample_data' => true]);
     $this->seed(SampleDataSeeder::class);
     $this->seed(SampleDataSeeder::class);
 

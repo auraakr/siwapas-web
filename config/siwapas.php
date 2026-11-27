@@ -52,6 +52,12 @@ return [
     'display_timezone' => 'Asia/Jakarta',
 
     /*
+    | Sample ("Contoh") data is only seeded with APP_ENV=local on a non-Supabase database. Set
+    | SEED_SAMPLE_DATA=true to seed it anywhere on purpose (for example a demo database).
+    */
+    'seed_sample_data' => (bool) env('SEED_SAMPLE_DATA', false),
+
+    /*
     | Languages visitors can switch between on the public site. Content columns hold one
     | translation per language; the default language is shown until a visitor chooses another.
     */

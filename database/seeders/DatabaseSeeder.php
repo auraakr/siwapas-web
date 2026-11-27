@@ -13,9 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        if (! app()->isProduction()) {
-            $this->call(SampleDataSeeder::class);
-        }
+        // SampleDataSeeder refuses (with a message) outside a local, non-Supabase database.
+        $this->call(SampleDataSeeder::class);
 
         $email = config('siwapas.admin.email');
         $password = config('siwapas.admin.password');

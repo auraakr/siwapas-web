@@ -15,6 +15,16 @@ Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content,
 - Credentials live only in .env (git-ignored); .env.example holds placeholders.
 - Tests run on in-memory SQLite (phpunit.xml) and never touch Supabase. The exclusion-constraint test (ReservationExclusionTest) is skipped unless it runs on a PostgreSQL database whose name contains "test".
 
+## Shared database: read before touching data
+- The local .env points at the SHARED Supabase database that the team and the Railway trial use. Anything written from a local shell is written there.
+- Never run db:seed, migrate:fresh, migrate:refresh, migrate:reset, migrate:rollback, db:wipe or siwapas:purge-sample-data --force against Supabase without the user's explicit approval for that run. A plain `php artisan migrate` also needs approval: show the migration and `migrate --pretend` first.
+- Sample ("Contoh") seeders refuse to run unless APP_ENV=local and the database is not a Supabase host; SEED_SAMPLE_DATA=true overrides this on purpose only. The admin seeder is not guarded.
+- `siwapas:purge-sample-data` lists the sample rows (dry run); only `--force` deletes them with their media.
+- Every connection reads DB_URL, including `sqlite`, and the URL scheme decides the driver. Setting DB_CONNECTION=sqlite alone still connects to Supabase while DB_URL is set.
+- Safe local experiments on SQLite: create an empty file outside the repo or in database/, then run every command with DB_URL emptied, for example
+  `DB_URL= DB_CONNECTION=sqlite DB_DATABASE=/abs/path/scratch.sqlite php artisan migrate --seed`.
+  Check the target first: `DB_URL= DB_CONNECTION=sqlite DB_DATABASE=... php artisan tinker --execute 'echo DB::getDriverName(), " ", DB::connection()->getDatabaseName();'` must print sqlite and the file path. Pass the same variables to any server you start (php artisan serve / php -S).
+
 ## Architecture rules
 - Modular monolith. Domain code lives in app/Domain/{Content,Catalog,Booking,Event,Payment,Notification}. Each domain has Models, Enums, Actions, Services, Policies, DTOs, Events. Controllers stay thin and call Actions.
 - Booking and Event never depend on a payment provider. They depend on the Payment domain (Order, Payment, PaymentProof) and the PaymentMethod interface.

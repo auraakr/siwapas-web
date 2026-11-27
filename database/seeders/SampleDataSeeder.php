@@ -13,22 +13,45 @@ use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use App\Domain\Payment\Enums\PaymentMethodType;
 use App\Domain\Payment\Models\BankAccount;
+use Database\Seeders\Concerns\GuardsSampleData;
 use Illuminate\Database\Seeder;
 
 class SampleDataSeeder extends Seeder
 {
+    use GuardsSampleData;
+
+    /**
+     * The sample bank account; siwapas:purge-sample-data removes it by this number.
+     */
+    public const SAMPLE_ACCOUNT_NUMBER = '1234567890';
+
+    /**
+     * Sample questions and answers; siwapas:purge-sample-data removes FAQs that still match them exactly.
+     *
+     * @var array<string, string>
+     */
+    public const SAMPLE_FAQS = [
+        'Apakah perlu membuat akun untuk memesan?' => 'Tidak perlu. Kamu cukup mengisi data pemesan, lalu menyimpan tautan pesanan yang diberikan.',
+        'Bagaimana cara membayar?' => 'Transfer ke rekening atau QRIS desa, lalu unggah bukti transfer di halaman pesanan. Pengelola akan memverifikasinya.',
+        'Berapa lama pesanan ditahan?' => 'Pesanan ditahan 24 jam. Jika belum ada pembayaran, pesanan otomatis kedaluwarsa.',
+    ];
+
     /**
      * Seed example facilities, bank accounts and content for local development.
      * Every sample title is marked "Contoh" so it is never mistaken for real village data.
      */
     public function run(): void
     {
+        if ($this->sampleDataBlocked()) {
+            return;
+        }
+
         $this->seedLandingContent();
         $this->call(SampleProductSeeder::class);
 
         $this->call(FacilitySeeder::class);
 
-        BankAccount::updateOrCreate(['account_number' => '1234567890'], [
+        BankAccount::updateOrCreate(['account_number' => self::SAMPLE_ACCOUNT_NUMBER], [
             'type' => PaymentMethodType::Bank,
             'bank_name' => 'BCA',
             'account_holder' => 'Desa Wisata Pasirnanjung Geulis',
@@ -103,11 +126,7 @@ class SampleDataSeeder extends Seeder
             ]);
         }
 
-        $questions = [
-            'Apakah perlu membuat akun untuk memesan?' => 'Tidak perlu. Kamu cukup mengisi data pemesan, lalu menyimpan tautan pesanan yang diberikan.',
-            'Bagaimana cara membayar?' => 'Transfer ke rekening atau QRIS desa, lalu unggah bukti transfer di halaman pesanan. Pengelola akan memverifikasinya.',
-            'Berapa lama pesanan ditahan?' => 'Pesanan ditahan 24 jam. Jika belum ada pembayaran, pesanan otomatis kedaluwarsa.',
-        ];
+        $questions = self::SAMPLE_FAQS;
 
         $order = 0;
 
