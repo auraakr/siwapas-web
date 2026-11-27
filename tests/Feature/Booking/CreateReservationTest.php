@@ -2,6 +2,7 @@
 
 use App\Domain\Booking\Actions\CreateReservation;
 use App\Domain\Booking\DTOs\ReservationData;
+use App\Domain\Booking\Exceptions\BookingTooSoon;
 use App\Domain\Booking\Exceptions\FacilityUnavailable;
 use App\Domain\Booking\Models\Reservation;
 use App\Domain\Catalog\Enums\PricingRuleType;
@@ -12,6 +13,7 @@ use App\Domain\Payment\DTOs\CustomerData;
 use App\Domain\Payment\Enums\OrderKind;
 use App\Domain\Payment\Enums\OrderStatus;
 use App\Domain\Payment\Enums\PaymentStatus;
+use App\Domain\Payment\Enums\PaymentType;
 use App\Domain\Payment\Exceptions\PaymentNotPossible;
 use App\Domain\Payment\Models\BankAccount;
 use Illuminate\Support\Facades\Date;
@@ -31,7 +33,7 @@ beforeEach(function () {
     $this->travelTo('2026-11-15 03:00:00');
 });
 
-it('creates a pending order, an active reservation and a manual transfer payment', function () {
+it('creates a pending order, an active reservation and a down payment for half the price', function () {
     $bank = BankAccount::factory()->create(['bank_name' => 'BCA', 'account_number' => '1234567890']);
     $facility = Facility::factory()->create(['base_price' => 500000, 'capacity' => 10]);
 
@@ -43,6 +45,9 @@ it('creates a pending order, an active reservation and a manual transfer payment
         ->and($order->subtotal)->toBe(1000000)
         ->and($order->unique_code)->toBeBetween(1, 999)
         ->and($order->total)->toBe(1000000 + $order->unique_code)
+        ->and($order->dp_percentage)->toBe(50)
+        ->and($order->dp_amount)->toBe(500000)
+        ->and($order->remaining_amount)->toBe(500000)
         ->and($order->access_token)->toHaveLength(48)
         ->and($order->expires_at->toDateTimeString())->toBe('2026-11-16 03:00:00');
 
@@ -54,7 +59,8 @@ it('creates a pending order, an active reservation and a manual transfer payment
 
     $payment = $order->payments()->sole();
     expect($payment->status)->toBe(PaymentStatus::Pending)
-        ->and($payment->expected_amount)->toBe($order->total)
+        ->and($payment->type)->toBe(PaymentType::DownPayment)
+        ->and($payment->expected_amount)->toBe(500000 + $order->unique_code)
         ->and($payment->bank_account_id)->toBe($bank->id)
         ->and($payment->bank_snapshot)->toBe([['type' => 'bank', 'name' => 'BCA', 'account_number' => '1234567890', 'account_holder' => $bank->account_holder, 'qris_url' => null]]);
 
@@ -137,14 +143,19 @@ it('rejects a check-in date in the past', function () {
         ->toThrow(FacilityUnavailable::class);
 });
 
-it('accepts a check-in today in Jakarta even when it is still yesterday in UTC', function () {
+it('counts days in Jakarta: today there is too late for a down payment, tomorrow is due by midnight', function () {
     $this->travelTo('2026-11-14 20:00:00'); // 03:00 on 2026-11-15 in Jakarta
     BankAccount::factory()->create();
     $facility = Facility::factory()->create(['capacity' => 10]);
 
-    $order = app(CreateReservation::class)->handle(reservationData($facility, '2026-11-15', '2026-11-16'));
+    // Still 14 November in UTC, but check-in day 15 November has already begun in Jakarta.
+    expect(fn () => app(CreateReservation::class)->handle(reservationData($facility, '2026-11-15', '2026-11-16')))
+        ->toThrow(BookingTooSoon::class);
 
-    expect($order->reservation->check_in->toDateString())->toBe('2026-11-15');
+    $order = app(CreateReservation::class)->handle(reservationData($facility, '2026-11-16', '2026-11-17'));
+
+    expect($order->reservation->check_in->toDateString())->toBe('2026-11-16')
+        ->and($order->expires_at->toDateTimeString())->toBe('2026-11-15 17:00:00');
 });
 
 it('rejects more guests than the facility capacity', function () {

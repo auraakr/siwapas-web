@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Booking\Models\Reservation;
+use App\Domain\Payment\Enums\CancellationParty;
 use App\Domain\Payment\Enums\OrderStatus;
 use App\Domain\Payment\Enums\PaymentMethodType;
 use App\Domain\Payment\Enums\PaymentStatus;
@@ -65,10 +66,11 @@ describe('booking / reservasi', function () {
         $reservation = reservationFor(OrderStatus::Confirmed);
 
         Livewire::test(ListReservations::class)
-            ->callTableAction('cancel', $reservation, ['reason' => 'Tamu membatalkan'])
+            ->callTableAction('cancel', $reservation, ['party' => 'tenant', 'note' => 'Tamu membatalkan'])
             ->assertHasNoTableActionErrors();
 
         expect($reservation->order->fresh()->status)->toBe(OrderStatus::Cancelled)
+            ->and($reservation->order->fresh()->cancelled_by)->toBe(CancellationParty::Tenant)
             ->and($reservation->fresh()->is_active)->toBeFalse()
             ->and($reservation->order->statusHistories()->sole()->note)->toBe('Tamu membatalkan');
     });
@@ -115,7 +117,7 @@ describe('pembayaran', function () {
             ->and($payment->order->fresh()->status)->toBe(OrderStatus::Confirmed);
     });
 
-    it('rejects a payment with a reason and releases the slot', function () {
+    it('rejects a payment with a reason and lets the visitor upload again', function () {
         $payment = paymentAwaitingDecision();
         $reservation = Reservation::factory()->create(['order_id' => $payment->order_id]);
 
@@ -125,6 +127,19 @@ describe('pembayaran', function () {
 
         expect($payment->fresh()->status)->toBe(PaymentStatus::Rejected)
             ->and($payment->fresh()->rejection_reason)->toBe('Nominal tidak sesuai')
+            ->and($payment->order->fresh()->status)->toBe(OrderStatus::PendingPayment)
+            ->and($reservation->fresh()->is_active)->toBeTrue();
+    });
+
+    it('rejects a forged proof permanently and releases the slot', function () {
+        $payment = paymentAwaitingDecision();
+        $reservation = Reservation::factory()->create(['order_id' => $payment->order_id]);
+
+        Livewire::test(ManagePayments::class)
+            ->callTableAction('reject', $payment, ['reason' => 'Bukti palsu', 'permanent' => true])
+            ->assertHasNoTableActionErrors();
+
+        expect($payment->order->fresh()->status)->toBe(OrderStatus::Rejected)
             ->and($reservation->fresh()->is_active)->toBeFalse();
     });
 

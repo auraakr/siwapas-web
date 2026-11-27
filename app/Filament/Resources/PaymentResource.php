@@ -6,9 +6,11 @@ use App\Domain\Payment\Actions\RejectPayment;
 use App\Domain\Payment\Actions\VerifyPayment;
 use App\Domain\Payment\Enums\OrderStatus;
 use App\Domain\Payment\Enums\PaymentStatus;
+use App\Domain\Payment\Enums\PaymentType;
 use App\Domain\Payment\Exceptions\InvalidOrderTransition;
 use App\Domain\Payment\Models\Payment;
 use App\Filament\Resources\PaymentResource\Pages;
+use App\Filament\Support\PaymentPresenter;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -45,7 +47,7 @@ class PaymentResource extends Resource
     {
         $count = Payment::query()
             ->where('status', PaymentStatus::Pending)
-            ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::AwaitingVerification))
+            ->whereHas('order', fn (Builder $order) => $order->whereIn('status', OrderStatus::awaitingDecision()))
             ->count();
 
         return $count > 0 ? (string) $count : null;
@@ -58,7 +60,15 @@ class PaymentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('order.code')->label('Pesanan')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('order.customer_name')->label('Pemesan')->searchable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Jenis')
+                    ->badge()
+                    ->formatStateUsing(fn (PaymentType $state): string => PaymentPresenter::typeLabel($state))
+                    ->color(fn (PaymentType $state): string => PaymentPresenter::typeColor($state)),
                 Tables\Columns\TextColumn::make('expected_amount')->label('Nominal')->money('IDR', locale: 'id'),
+                Tables\Columns\TextColumn::make('method')
+                    ->label('Metode')
+                    ->formatStateUsing(fn (string $state): string => PaymentPresenter::methodLabel($state)),
                 Tables\Columns\TextColumn::make('proofs_count')->label('Bukti')->counts('proofs'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
@@ -73,6 +83,7 @@ class PaymentResource extends Resource
                         PaymentStatus::Verified => 'success',
                         PaymentStatus::Rejected => 'danger',
                     }),
+                Tables\Columns\TextColumn::make('rejection_reason')->label('Alasan ditolak')->placeholder('-')->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')->label('Dibuat')->dateTime('d M Y H:i', config('siwapas.display_timezone'))->sortable(),
             ])
             ->defaultSort('id', 'desc')
@@ -80,6 +91,9 @@ class PaymentResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options(['pending' => 'Menunggu', 'verified' => 'Terverifikasi', 'rejected' => 'Ditolak']),
+                Tables\Filters\SelectFilter::make('type')
+                    ->label('Jenis')
+                    ->options(PaymentPresenter::typeOptions()),
             ])
             ->actions([
                 Tables\Actions\Action::make('proofs')
@@ -95,7 +109,11 @@ class PaymentResource extends Resource
                     ->color('success')
                     ->visible(fn (Payment $record): bool => self::awaitingDecision($record))
                     ->requiresConfirmation()
-                    ->modalDescription('Pesanan akan dikonfirmasi dan slot tetap terkunci.')
+                    ->modalDescription(fn (Payment $record): string => match ($record->type) {
+                        PaymentType::DownPayment => 'DP diterima: booking terkonfirmasi dan slot tetap terkunci. Sisa pelunasan dibayar kemudian.',
+                        PaymentType::Settlement => 'Pelunasan diterima: reservasi ditandai lunas.',
+                        PaymentType::Full => 'Pesanan akan dikonfirmasi dan slot tetap terkunci.',
+                    })
                     ->action(function (Payment $record): void {
                         try {
                             app(VerifyPayment::class)->handle($record, auth()->user());
@@ -112,27 +130,51 @@ class PaymentResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->visible(fn (Payment $record): bool => self::awaitingDecision($record))
-                    ->form([
-                        Forms\Components\TextInput::make('reason')->label('Alasan penolakan')->required()->maxLength(500),
+                    ->modalDescription(fn (Payment $record): string => $record->type === PaymentType::Settlement
+                        ? 'Booking tetap berlaku. Pengunjung dapat mengunggah bukti pelunasan lagi.'
+                        : 'Pengunjung dapat mengunggah bukti baru selama batas waktu pembayaran belum lewat. Jika sudah lewat, pesanan kedaluwarsa dan slot dilepas.')
+                    ->form(fn (Payment $record): array => [
+                        Forms\Components\TextInput::make('reason')
+                            ->label('Alasan penolakan (ditampilkan ke pengunjung)')
+                            ->required()
+                            ->maxLength(500),
+                        Forms\Components\Toggle::make('permanent')
+                            ->label('Tolak permanen (misalnya bukti palsu): pesanan ditolak dan slot dilepas')
+                            ->default(false)
+                            ->visible($record->type !== PaymentType::Settlement),
                     ])
                     ->action(function (Payment $record, array $data): void {
                         try {
-                            app(RejectPayment::class)->handle($record, auth()->user(), $data['reason']);
+                            app(RejectPayment::class)->handle($record, auth()->user(), $data['reason'], (bool) ($data['permanent'] ?? false));
                         } catch (InvalidOrderTransition) {
                             Notification::make()->title('Pembayaran ini sudah diproses.')->danger()->send();
 
                             return;
                         }
 
-                        Notification::make()->title('Pembayaran ditolak dan slot dilepas.')->success()->send();
+                        $message = match ($record->order->refresh()->status) {
+                            OrderStatus::PendingPayment => 'Bukti ditolak. Pengunjung dapat mengunggah ulang.',
+                            OrderStatus::DpPaid => 'Bukti pelunasan ditolak. Booking tetap berlaku.',
+                            OrderStatus::Expired => 'Bukti ditolak. Batas waktu sudah lewat, pesanan kedaluwarsa dan slot dilepas.',
+                            default => 'Pembayaran ditolak permanen dan slot dilepas.',
+                        };
+
+                        Notification::make()->title($message)->success()->send();
                     }),
             ]);
     }
 
+    /**
+     * A down payment or full payment is decided while the order awaits verification; a settlement
+     * while it awaits settlement verification.
+     */
     private static function awaitingDecision(Payment $payment): bool
     {
-        return $payment->status === PaymentStatus::Pending
-            && $payment->order->status === OrderStatus::AwaitingVerification;
+        $expected = $payment->type === PaymentType::Settlement
+            ? OrderStatus::AwaitingSettlementVerification
+            : OrderStatus::AwaitingVerification;
+
+        return $payment->status === PaymentStatus::Pending && $payment->order->status === $expected;
     }
 
     public static function getPages(): array

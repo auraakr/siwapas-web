@@ -48,6 +48,30 @@ class OrderFactory extends Factory
         ]);
     }
 
+    /**
+     * A reservation paid with a 50% down payment: 250.000 now (+ unique code), 250.000 later.
+     */
+    public function withDownPayment(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'kind' => OrderKind::Reservation,
+            'dp_percentage' => 50,
+            'dp_amount' => intdiv($attributes['subtotal'] + 1, 2),
+            'remaining_amount' => $attributes['subtotal'] - intdiv($attributes['subtotal'] + 1, 2),
+        ]);
+    }
+
+    /**
+     * The down payment is verified: the booking stands and the rest is still due.
+     */
+    public function dpPaid(): static
+    {
+        return $this->withDownPayment()->state(fn (array $attributes) => [
+            'status' => OrderStatus::DpPaid,
+            'confirmed_at' => now(),
+        ]);
+    }
+
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [

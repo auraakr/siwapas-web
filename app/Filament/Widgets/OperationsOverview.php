@@ -27,7 +27,7 @@ class OperationsOverview extends StatsOverviewWidget
 
         $awaitingVerification = Payment::query()
             ->where('status', PaymentStatus::Pending)
-            ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::AwaitingVerification))
+            ->whereHas('order', fn (Builder $order) => $order->whereIn('status', OrderStatus::awaitingDecision()))
             ->count();
 
         $unpaid = Order::query()->where('status', OrderStatus::PendingPayment)->count();
@@ -35,7 +35,7 @@ class OperationsOverview extends StatsOverviewWidget
         $upcomingReservations = Reservation::query()
             ->where('is_active', true)
             ->whereDate('check_out', '>', $today)
-            ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Confirmed))
+            ->whereHas('order', fn (Builder $order) => $order->whereIn('status', [OrderStatus::Confirmed, OrderStatus::DpPaid, OrderStatus::AwaitingSettlementVerification, OrderStatus::PaidInFull]))
             ->count();
 
         $eventParticipants = (int) EventRegistration::query()

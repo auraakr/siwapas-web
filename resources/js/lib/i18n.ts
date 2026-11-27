@@ -208,7 +208,7 @@ const id = {
     'booking.notes': 'Catatan (opsional)',
     'booking.submit': 'Pesan Sekarang',
     'booking.afterSubmit':
-        'Tanpa perlu akun. Pesananmu dikonfirmasi pengelola setelah bukti transfer diverifikasi.',
+        'Tanpa perlu akun. Booking terkonfirmasi setelah bukti transfer DP diverifikasi pengelola.',
     'booking.rules': 'Tata tertib',
     'events.pageDescription':
         'Kegiatan budaya, alam, dan komunitas di Pasirnanjung Geulis. Daftar langsung secara online.',
@@ -310,6 +310,66 @@ const id = {
     'umkm.emptyTitle': 'Produk UMKM segera hadir',
     'umkm.emptyText':
         'Pengelola sedang menyiapkan daftar produk warga. Kunjungi lagi halaman ini dalam waktu dekat.',
+
+    // Down payment (DP) for facility reservations
+    'booking.dpIntro':
+        'Cukup bayar DP {percent}% dari harga lunas untuk mengamankan tanggalmu. Sisanya dibayar sebelum atau saat kedatangan. Pilih tanggal untuk melihat rinciannya.',
+    'booking.totalFor': 'Harga lunas ({nights} malam)',
+    'booking.dpNow': 'DP {percent}% dibayar sekarang',
+    'booking.remainingLater': 'Sisa pelunasan (nanti)',
+    'booking.uniqueCodeNote':
+        'Kode unik 1–999 rupiah ditambahkan ke transfer DP agar pembayaranmu mudah dikenali.',
+    'booking.tooSoon':
+        'Tanggal check-in ini terlalu dekat untuk membayar DP secara online. Pilih tanggal lain atau hubungi pengelola.',
+    'booking.datesTaken':
+        'Tanggal ini sudah terisi. Silakan pilih tanggal lain.',
+    'booking.askManager': 'Hubungi pengelola via WhatsApp',
+    'booking.askMessage':
+        'Halo, saya ingin memesan {name} untuk tanggal dekat. Apakah masih bisa?',
+    'order.status.dp_paid': 'DP lunas, booking terkonfirmasi',
+    'order.status.awaiting_settlement_verification':
+        'Menunggu verifikasi pelunasan',
+    'order.status.paid_in_full': 'Lunas',
+    'order.step.payDp': 'Bayar DP',
+    'order.step.verifyDp': 'DP diverifikasi',
+    'order.step.settle': 'Pelunasan',
+    'order.step.paidInFull': 'Lunas',
+    'order.ended.rejected':
+        'Pesanan ini ditolak. Hubungi pengelola jika menurutmu ada kekeliruan.',
+    'order.rejectedSettlement':
+        'Bukti pelunasan ditolak: {reason}. Booking-mu tetap berlaku, silakan unggah bukti yang benar.',
+    'order.uploadAgainBefore':
+        'Silakan unggah bukti yang benar sebelum {time}.',
+    'order.verifyingDp':
+        'Bukti transfer DP diterima. Verifikasi paling lambat {hours} jam. Setelah itu booking-mu terkonfirmasi.',
+    'order.dpPaidNote':
+        'DP sudah kami terima, booking-mu terkonfirmasi! Sisa {amount} bisa ditransfer lalu unggah buktinya di bawah, atau dibayar tunai saat kedatangan.',
+    'order.verifyingSettlement':
+        'Bukti pelunasan diterima. Verifikasi paling lambat {hours} jam.',
+    'order.paidInFullNote':
+        'Pembayaran sudah lunas. Terima kasih, sampai jumpa di Pasirnanjung Geulis!',
+    'order.paidInFullCash':
+        'Pembayaran sudah lunas (tunai di lokasi). Terima kasih, sampai jumpa lagi di Pasirnanjung Geulis!',
+    'order.settlementClosed':
+        'Batas unggah bukti pelunasan sudah lewat (setelah tanggal check-out). Sisa {amount} belum tercatat lunas, silakan hubungi pengelola.',
+    'order.contactManagers': 'Hubungi pengelola',
+    'order.askManagerMessage':
+        'Halo, saya ingin menyelesaikan pembayaran pesanan {code}.',
+    'order.dpForfeited':
+        'Sesuai ketentuan, DP tidak dapat dikembalikan untuk pembatalan oleh penyewa.',
+    'order.fullPrice': 'Harga lunas',
+    'order.dpPart': 'DP {percent}%',
+    'order.uniqueCodeOnDp': 'Kode unik (ditambahkan ke DP)',
+    'order.remaining': 'Sisa pelunasan',
+    'order.transferDp': 'Transfer DP sekarang',
+    'order.transferSettlement': 'Transfer pelunasan',
+    'order.settlementExact':
+        'Transfer pelunasan sesuai nominal di atas, tanpa kode unik.',
+    'order.payDpBefore': 'Bayar DP sebelum {time}',
+    'order.settleOptions':
+        'Transfer sisa pembayaran lalu unggah buktinya paling lambat {date} (tanggal check-out), atau bayar tunai di lokasi.',
+    'order.uploadDpTitle': 'Unggah bukti transfer DP',
+    'order.uploadSettlementTitle': 'Unggah bukti pelunasan',
 } as const;
 
 export type MessageKey = keyof typeof id;
@@ -509,7 +569,7 @@ const en: Record<MessageKey, string> = {
     'booking.notes': 'Notes (optional)',
     'booking.submit': 'Book Now',
     'booking.afterSubmit':
-        'No account needed. The managers confirm your booking once the proof of payment is verified.',
+        'No account needed. Your booking is confirmed once the managers verify the down payment transfer.',
     'booking.rules': 'House rules',
     'events.pageDescription':
         'Cultural, nature, and community activities in Pasirnanjung Geulis. Register online.',
@@ -608,6 +668,64 @@ const en: Record<MessageKey, string> = {
     'umkm.emptyTitle': 'Local products coming soon',
     'umkm.emptyText':
         'The managers are preparing the list of village products. Please check back soon.',
+
+    'booking.dpIntro':
+        'Pay a {percent}% down payment of the full price to secure your dates. The rest is paid before or on arrival. Pick your dates to see the details.',
+    'booking.totalFor': 'Full price ({nights} nights)',
+    'booking.dpNow': '{percent}% down payment due now',
+    'booking.remainingLater': 'Remaining balance (later)',
+    'booking.uniqueCodeNote':
+        'A unique code of 1–999 rupiah is added to the down payment transfer so we can recognise your payment.',
+    'booking.tooSoon':
+        'This check-in date is too close to pay the down payment online. Choose another date or contact the managers.',
+    'booking.datesTaken':
+        'These dates are already booked. Please choose other dates.',
+    'booking.askManager': 'Contact the managers via WhatsApp',
+    'booking.askMessage':
+        'Hello, I would like to book {name} for a date soon. Is that still possible?',
+    'order.status.dp_paid': 'Down payment received, booking confirmed',
+    'order.status.awaiting_settlement_verification':
+        'Awaiting balance verification',
+    'order.status.paid_in_full': 'Paid in full',
+    'order.step.payDp': 'Pay deposit',
+    'order.step.verifyDp': 'Deposit verified',
+    'order.step.settle': 'Balance',
+    'order.step.paidInFull': 'Paid in full',
+    'order.ended.rejected':
+        'This order was rejected. Please contact the managers if you think this is a mistake.',
+    'order.rejectedSettlement':
+        'Balance proof rejected: {reason}. Your booking still stands; please upload the correct proof.',
+    'order.uploadAgainBefore': 'Please upload the correct proof before {time}.',
+    'order.verifyingDp':
+        'Down payment proof received. Verification takes at most {hours} hours, then your booking is confirmed.',
+    'order.dpPaidNote':
+        'We received your down payment and your booking is confirmed! The remaining {amount} can be transferred with the proof uploaded below, or paid in cash on arrival.',
+    'order.verifyingSettlement':
+        'Balance proof received. Verification takes at most {hours} hours.',
+    'order.paidInFullNote':
+        'Your booking is paid in full. Thank you, see you in Pasirnanjung Geulis!',
+    'order.paidInFullCash':
+        'Your booking is paid in full (cash on site). Thank you, see you again in Pasirnanjung Geulis!',
+    'order.settlementClosed':
+        'The deadline to upload the balance proof has passed (after the check-out date). The remaining {amount} is not recorded as paid yet; please contact the managers.',
+    'order.contactManagers': 'Contact the managers',
+    'order.askManagerMessage':
+        'Hello, I would like to settle the payment for order {code}.',
+    'order.dpForfeited':
+        'As stated in the terms, the down payment is not refunded when the tenant cancels.',
+    'order.fullPrice': 'Full price',
+    'order.dpPart': '{percent}% down payment',
+    'order.uniqueCodeOnDp': 'Unique code (added to the down payment)',
+    'order.remaining': 'Remaining balance',
+    'order.transferDp': 'Transfer the down payment now',
+    'order.transferSettlement': 'Transfer the balance',
+    'order.settlementExact':
+        'Transfer the exact balance above, without a unique code.',
+    'order.payDpBefore': 'Pay the down payment before {time}',
+    'order.settleOptions':
+        'Transfer the remaining balance and upload the proof by {date} (check-out date), or pay in cash on site.',
+    'order.uploadDpTitle': 'Upload the down payment proof',
+    'order.uploadSettlementTitle': 'Upload the balance proof',
 };
 
 const messages: Record<Locale, Record<MessageKey, string>> = { id, en };

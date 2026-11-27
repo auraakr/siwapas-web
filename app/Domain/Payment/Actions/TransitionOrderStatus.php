@@ -30,7 +30,8 @@ class TransitionOrderStatus
 
             $locked->status = $to;
 
-            if ($to === OrderStatus::Confirmed) {
+            // The booking is secured once the first payment (full or down payment) is verified.
+            if (in_array($to, [OrderStatus::Confirmed, OrderStatus::DpPaid], true) && $locked->confirmed_at === null) {
                 $locked->confirmed_at = now();
             }
 

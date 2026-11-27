@@ -63,6 +63,19 @@ return [
 
     'payment' => [
         'hold_hours' => 24,
+
+        /*
+        | Reservations are paid with a down payment of this share of the full price; the managers can
+        | change it in the admin panel (stored in site_settings). Event tickets are always paid in full.
+        */
+        'dp_percentage' => 50,
+
+        /*
+        | The down payment is due at the start of the check-in day at the latest. Bookings that would
+        | leave less time than this to pay are refused online.
+        */
+        'min_payment_window_minutes' => 120,
+
         'unique_code_min' => 1,
         'unique_code_max' => 999,
         'verification_target_hours' => 24,

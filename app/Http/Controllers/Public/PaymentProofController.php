@@ -24,10 +24,14 @@ class PaymentProofController extends Controller
                 $request->filled('claimed_amount') ? $request->integer('claimed_amount') : null,
             );
         } catch (PaymentNotPossible) {
-            return back()->withErrors(['proof' => 'Pesanan ini tidak dapat menerima bukti transfer lagi.']);
+            return back()->withErrors(['proof' => app()->getLocale() === 'en'
+                ? 'This order cannot receive a transfer proof right now. Please contact the managers.'
+                : 'Pesanan ini tidak dapat menerima bukti transfer saat ini. Silakan hubungi pengelola.']);
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Bukti transfer diterima. Kami akan memverifikasinya.']);
+        Inertia::flash('toast', ['type' => 'success', 'message' => app()->getLocale() === 'en'
+            ? 'Transfer proof received. We will verify it.'
+            : 'Bukti transfer diterima. Kami akan memverifikasinya.']);
 
         return to_route('orders.show', $order);
     }

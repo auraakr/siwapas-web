@@ -1,6 +1,6 @@
-import { Form, Head } from '@inertiajs/react';
-import { CalendarX2, Users } from 'lucide-react';
-import { useState } from 'react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
+import { CalendarX2, Info, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { store } from '@/actions/App/Http/Controllers/Public/ReservationController';
 import FormField from '@/components/site/form-field';
 import PageTitle from '@/components/site/page-title';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDate, formatRupiah } from '@/lib/format';
 import { useTranslation } from '@/lib/i18n';
+import { withWhatsappText } from '@/lib/whatsapp';
 
 type Props = {
     facility: {
@@ -20,11 +21,140 @@ type Props = {
         rules: string[] | null;
     };
     unavailable: { from: string; to: string }[];
+    dp_percentage: number;
+    quote?: Quote | null;
 };
 
-export default function FacilityShow({ facility, unavailable }: Props) {
+type Quote = {
+    nights: number;
+    total: number;
+    dp_percentage: number;
+    dp_amount: number;
+    remaining_amount: number;
+    available: boolean;
+    too_soon: boolean;
+};
+
+/**
+ * Total, the down payment due now and the rest, priced by the server (weekend and season rules
+ * included) as soon as both dates are picked.
+ */
+function PriceSummary({
+    quote,
+    loading,
+    dpPercentage,
+    facilityName,
+}: {
+    quote: Quote | null | undefined;
+    loading: boolean;
+    dpPercentage: number;
+    facilityName: string;
+}) {
+    const { t } = useTranslation();
+    const { site } = usePage().props;
+    const whatsapp = site.contact.whatsapp_url
+        ? withWhatsappText(
+              site.contact.whatsapp_url,
+              t('booking.askMessage', { name: facilityName }),
+          )
+        : null;
+
+    if (!quote) {
+        return (
+            <p className="flex gap-2 rounded-lg bg-cream p-3 text-xs text-forest-800/90">
+                <Info
+                    className="mt-0.5 size-4 shrink-0 text-clay-dark"
+                    aria-hidden="true"
+                />
+                {t('booking.dpIntro', { percent: dpPercentage })}
+            </p>
+        );
+    }
+
+    return (
+        <div
+            aria-live="polite"
+            className={`rounded-lg border border-forest-100 bg-cream p-4 text-sm transition-opacity ${loading ? 'opacity-60' : ''}`}
+        >
+            <dl className="space-y-1.5">
+                <div className="flex justify-between gap-4">
+                    <dt className="text-forest-800/80">
+                        {t('booking.totalFor', { nights: quote.nights })}
+                    </dt>
+                    <dd className="font-medium text-forest-900">
+                        {formatRupiah(quote.total)}
+                    </dd>
+                </div>
+                <div className="flex justify-between gap-4 border-t border-forest-100 pt-1.5">
+                    <dt className="font-semibold text-forest-900">
+                        {t('booking.dpNow', { percent: quote.dp_percentage })}
+                    </dt>
+                    <dd className="font-serif text-lg font-semibold text-forest-900">
+                        {formatRupiah(quote.dp_amount)}
+                    </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                    <dt className="text-forest-800/80">
+                        {t('booking.remainingLater')}
+                    </dt>
+                    <dd className="font-medium text-forest-900">
+                        {formatRupiah(quote.remaining_amount)}
+                    </dd>
+                </div>
+            </dl>
+            <p className="mt-2 text-xs text-muted-foreground">
+                {t('booking.uniqueCodeNote')}
+            </p>
+
+            {(!quote.available || quote.too_soon) && (
+                <div className="mt-3 rounded-md bg-clay/10 p-3 text-xs text-clay-dark">
+                    <p className="font-semibold">
+                        {quote.available
+                            ? t('booking.tooSoon')
+                            : t('booking.datesTaken')}
+                    </p>
+                    {whatsapp && (
+                        <a
+                            href={whatsapp}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-block font-semibold underline"
+                        >
+                            {t('booking.askManager')}
+                        </a>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default function FacilityShow({
+    facility,
+    unavailable,
+    dp_percentage,
+    quote,
+}: Props) {
     const { t } = useTranslation();
     const [checkIn, setCheckIn] = useState('');
+    const [checkOut, setCheckOut] = useState('');
+    const [quoting, setQuoting] = useState(false);
+
+    // Price the stay on the server as soon as both dates are valid.
+    useEffect(() => {
+        if (!checkIn || !checkOut || checkOut <= checkIn) {
+            return;
+        }
+
+        router.reload({
+            only: ['quote'],
+            data: { check_in: checkIn, check_out: checkOut },
+            onStart: () => setQuoting(true),
+            onFinish: () => setQuoting(false),
+        });
+    }, [checkIn, checkOut]);
+
+    const hasValidDates = Boolean(checkIn && checkOut && checkOut > checkIn);
 
     return (
         <>
@@ -151,9 +281,18 @@ export default function FacilityShow({ facility, unavailable }: Props) {
                                                     ? true
                                                     : undefined
                                             }
+                                            onChange={(event) =>
+                                                setCheckOut(event.target.value)
+                                            }
                                         />
                                     </FormField>
                                 </div>
+                                <PriceSummary
+                                    quote={hasValidDates ? quote : null}
+                                    loading={quoting}
+                                    dpPercentage={dp_percentage}
+                                    facilityName={facility.name}
+                                />
                                 <FormField
                                     id="guests"
                                     label={t('booking.guests')}

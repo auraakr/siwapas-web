@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Domain\Booking\Actions\CreateReservation;
 use App\Domain\Booking\DTOs\ReservationData;
+use App\Domain\Booking\Exceptions\BookingTooSoon;
 use App\Domain\Booking\Exceptions\FacilityUnavailable;
 use App\Domain\Catalog\Models\Facility;
 use App\Domain\Payment\DTOs\CustomerData;
@@ -19,6 +20,8 @@ class ReservationController extends Controller
     {
         abort_unless($facility->is_active, 404);
 
+        $english = app()->getLocale() === 'en';
+
         try {
             $order = $createReservation->handle(new ReservationData(
                 facilityId: $facility->id,
@@ -32,13 +35,23 @@ class ReservationController extends Controller
                     notes: $request->filled('notes') ? $request->string('notes')->toString() : null,
                 ),
             ));
+        } catch (BookingTooSoon) {
+            return back()->withInput()->withErrors([
+                'check_in' => $english
+                    ? 'This check-in date is too close: there is not enough time left to pay the down payment online. Please choose a later date or contact the managers via WhatsApp.'
+                    : 'Tanggal check-in terlalu dekat sehingga waktu untuk membayar DP secara online tidak cukup. Silakan pilih tanggal lain atau hubungi pengelola via WhatsApp.',
+            ]);
         } catch (FacilityUnavailable) {
             return back()->withInput()->withErrors([
-                'check_in' => 'Fasilitas tidak tersedia pada tanggal tersebut atau data reservasi tidak valid.',
+                'check_in' => $english
+                    ? 'The facility is not available on those dates, or the booking details are not valid.'
+                    : 'Fasilitas tidak tersedia pada tanggal tersebut atau data reservasi tidak valid.',
             ]);
         } catch (PaymentNotPossible) {
             return back()->withInput()->withErrors([
-                'check_in' => 'Pembayaran belum dapat diproses saat ini. Silakan hubungi pengelola.',
+                'check_in' => $english
+                    ? 'Payments cannot be processed right now. Please contact the managers.'
+                    : 'Pembayaran belum dapat diproses saat ini. Silakan hubungi pengelola.',
             ]);
         }
 

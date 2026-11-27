@@ -4,12 +4,20 @@ namespace App\Filament\Resources;
 
 use App\Domain\Booking\Models\Reservation;
 use App\Domain\Payment\Actions\CancelOrder;
+use App\Domain\Payment\Actions\MarkOrderPaidInFull;
+use App\Domain\Payment\Enums\CancellationParty;
 use App\Domain\Payment\Enums\OrderStatus;
+use App\Domain\Payment\Enums\PaymentStatus;
+use App\Domain\Payment\Enums\PaymentType;
+use App\Domain\Payment\Enums\SettlementMethod;
 use App\Domain\Payment\Exceptions\InvalidOrderTransition;
+use App\Domain\Payment\Models\Order;
 use App\Filament\Resources\ReservationResource\Pages;
 use App\Filament\Support\OrderStatusPresenter;
+use App\Filament\Support\PaymentPresenter;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
@@ -72,10 +80,33 @@ class ReservationResource extends Resource
                 Infolists\Components\TextEntry::make('check_in')->label('Check-in')->date('d M Y'),
                 Infolists\Components\TextEntry::make('check_out')->label('Check-out')->date('d M Y'),
                 Infolists\Components\TextEntry::make('guests')->label('Jumlah tamu'),
-                Infolists\Components\TextEntry::make('order.total')->label('Total')->money('IDR', locale: 'id'),
-                Infolists\Components\TextEntry::make('order.unique_code')->label('Kode unik'),
                 Infolists\Components\TextEntry::make('order.confirmed_at')->label('Dikonfirmasi')->dateTime('d M Y H:i', config('siwapas.display_timezone'))->placeholder('-'),
+                Infolists\Components\TextEntry::make('order.expires_at')->label('Batas bayar DP')->dateTime('d M Y H:i', config('siwapas.display_timezone'))->placeholder('-'),
             ]),
+            Infolists\Components\Section::make('Pembayaran')->columns(3)->schema([
+                Infolists\Components\TextEntry::make('order.subtotal')->label('Harga lunas')->money('IDR', locale: 'id'),
+                Infolists\Components\TextEntry::make('order.dp_amount')
+                    ->label(fn (Reservation $record): string => 'DP '.($record->order->dp_percentage ?? 100).'%')
+                    ->money('IDR', locale: 'id')
+                    ->placeholder('Bayar penuh'),
+                Infolists\Components\TextEntry::make('order.remaining_amount')->label('Sisa pelunasan')->money('IDR', locale: 'id')->placeholder('-'),
+                Infolists\Components\TextEntry::make('order.unique_code')->label('Kode unik (ditambahkan ke DP)'),
+                Infolists\Components\TextEntry::make('settlement')
+                    ->label('Status pelunasan')
+                    ->state(fn (Reservation $record): string => self::settlementLabel($record->order))
+                    ->badge()
+                    ->color(fn (Reservation $record): string => $record->order->status === OrderStatus::PaidInFull ? 'success' : 'warning'),
+                Infolists\Components\TextEntry::make('order.settled_at')->label('Dilunasi')->dateTime('d M Y H:i', config('siwapas.display_timezone'))->placeholder('-'),
+            ]),
+            Infolists\Components\Section::make('Pembatalan')
+                ->columns(2)
+                ->visible(fn (Reservation $record): bool => $record->order->status === OrderStatus::Cancelled)
+                ->schema([
+                    Infolists\Components\TextEntry::make('order.cancelled_by')
+                        ->label('Dibatalkan oleh')
+                        ->formatStateUsing(fn (?CancellationParty $state): string => self::cancellationLabel($state)),
+                    Infolists\Components\TextEntry::make('order.resolution_note')->label('Catatan penyelesaian')->placeholder('-'),
+                ]),
             Infolists\Components\Section::make('Pemesan')->columns(3)->schema([
                 Infolists\Components\TextEntry::make('order.customer_name')->label('Nama'),
                 Infolists\Components\TextEntry::make('order.customer_phone')->label('Telepon'),
@@ -87,6 +118,25 @@ class ReservationResource extends Resource
                     Infolists\Components\TextEntry::make('date')->label('Tanggal'),
                     Infolists\Components\TextEntry::make('price')->label('Harga')->money('IDR', locale: 'id'),
                     Infolists\Components\TextEntry::make('rule')->label('Aturan')->placeholder('Harga dasar'),
+                ]),
+            ]),
+            Infolists\Components\Section::make('Riwayat pembayaran')->schema([
+                Infolists\Components\RepeatableEntry::make('order.payments')->label('')->columns(5)->schema([
+                    Infolists\Components\TextEntry::make('type')
+                        ->label('Jenis')
+                        ->badge()
+                        ->formatStateUsing(fn (PaymentType $state): string => PaymentPresenter::typeLabel($state))
+                        ->color(fn (PaymentType $state): string => PaymentPresenter::typeColor($state)),
+                    Infolists\Components\TextEntry::make('expected_amount')->label('Nominal')->money('IDR', locale: 'id'),
+                    Infolists\Components\TextEntry::make('method')->label('Metode')->formatStateUsing(fn (string $state): string => PaymentPresenter::methodLabel($state)),
+                    Infolists\Components\TextEntry::make('status')
+                        ->label('Status')
+                        ->formatStateUsing(fn (PaymentStatus $state): string => match ($state) {
+                            PaymentStatus::Pending => 'Menunggu',
+                            PaymentStatus::Verified => 'Terverifikasi',
+                            PaymentStatus::Rejected => 'Ditolak',
+                        }),
+                    Infolists\Components\TextEntry::make('rejection_reason')->label('Alasan ditolak')->placeholder('-'),
                 ]),
             ]),
             Infolists\Components\Section::make('Riwayat status')->schema([
@@ -112,12 +162,18 @@ class ReservationResource extends Resource
                 Tables\Columns\TextColumn::make('facility.name')->label('Fasilitas'),
                 Tables\Columns\TextColumn::make('check_in')->label('Check-in')->date('d M Y')->sortable(),
                 Tables\Columns\TextColumn::make('check_out')->label('Check-out')->date('d M Y'),
-                Tables\Columns\TextColumn::make('order.total')->label('Total')->money('IDR', locale: 'id'),
+                Tables\Columns\TextColumn::make('order.subtotal')->label('Harga lunas')->money('IDR', locale: 'id'),
+                Tables\Columns\TextColumn::make('order.dp_amount')->label('DP')->money('IDR', locale: 'id')->placeholder('Penuh'),
+                Tables\Columns\TextColumn::make('order.remaining_amount')->label('Sisa')->money('IDR', locale: 'id')->placeholder('-'),
                 Tables\Columns\TextColumn::make('order.status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (OrderStatus $state): string => OrderStatusPresenter::label($state))
                     ->color(fn (OrderStatus $state): string => OrderStatusPresenter::color($state)),
+                Tables\Columns\TextColumn::make('settlement')
+                    ->label('Pelunasan')
+                    ->state(fn (Reservation $record): string => self::settlementLabel($record->order))
+                    ->toggleable(),
             ])
             ->defaultSort('id', 'desc')
             ->filters([
@@ -132,17 +188,71 @@ class ReservationResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()->label('Ubah data pemesan'),
+                Tables\Actions\Action::make('markPaidInFull')
+                    ->label('Tandai Lunas')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('success')
+                    ->visible(fn (Reservation $record): bool => $record->order->requiresDownPayment()
+                        && $record->order->status->canTransitionTo(OrderStatus::PaidInFull))
+                    ->modalHeading('Tandai reservasi lunas')
+                    ->modalDescription(fn (Reservation $record): string => 'Sisa pelunasan: Rp '.number_format((int) $record->order->remaining_amount, 0, ',', '.'))
+                    ->form([
+                        Forms\Components\Radio::make('method')
+                            ->label('Metode pelunasan')
+                            ->options([
+                                SettlementMethod::Cash->value => 'Tunai di lokasi',
+                                SettlementMethod::Transfer->value => 'Transfer (sudah dicek di rekening)',
+                            ])
+                            ->default(SettlementMethod::Cash->value)
+                            ->required(),
+                        Forms\Components\TextInput::make('note')->label('Catatan (opsional)')->maxLength(500),
+                    ])
+                    ->action(function (Reservation $record, array $data): void {
+                        try {
+                            app(MarkOrderPaidInFull::class)->handle(
+                                $record->order,
+                                auth()->user(),
+                                SettlementMethod::from($data['method']),
+                                $data['note'] ?? null,
+                            );
+                        } catch (InvalidOrderTransition) {
+                            Notification::make()->title('Reservasi ini tidak dapat ditandai lunas.')->danger()->send();
+
+                            return;
+                        }
+
+                        Notification::make()->title('Reservasi ditandai lunas.')->success()->send();
+                    }),
                 Tables\Actions\Action::make('cancel')
                     ->label('Batalkan')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->visible(fn (Reservation $record): bool => $record->order->status->canTransitionTo(OrderStatus::Cancelled))
                     ->form([
-                        Forms\Components\TextInput::make('reason')->label('Alasan pembatalan')->required()->maxLength(500),
+                        Forms\Components\Radio::make('party')
+                            ->label('Dibatalkan oleh')
+                            ->options([
+                                CancellationParty::Tenant->value => 'Penyewa (DP hangus, tidak ada refund)',
+                                CancellationParty::Manager->value => 'Pengelola',
+                            ])
+                            ->default(CancellationParty::Tenant->value)
+                            ->required()
+                            ->live(),
+                        Forms\Components\Textarea::make('note')
+                            ->label(fn (Get $get): string => $get('party') === CancellationParty::Manager->value
+                                ? 'Catatan penyelesaian (wajib, misalnya pengembalian DP)'
+                                : 'Catatan (opsional)')
+                            ->required(fn (Get $get): bool => $get('party') === CancellationParty::Manager->value)
+                            ->maxLength(1000),
                     ])
                     ->action(function (Reservation $record, array $data): void {
                         try {
-                            app(CancelOrder::class)->handle($record->order, auth()->user(), $data['reason']);
+                            app(CancelOrder::class)->handle(
+                                $record->order,
+                                auth()->user(),
+                                filled($data['note'] ?? null) ? $data['note'] : null,
+                                CancellationParty::from($data['party']),
+                            );
                         } catch (InvalidOrderTransition) {
                             Notification::make()->title('Reservasi ini tidak dapat dibatalkan lagi.')->danger()->send();
 
@@ -156,6 +266,32 @@ class ReservationResource extends Resource
                     ->modalDescription('Hanya reservasi yang sudah dibatalkan atau kedaluwarsa dan tanpa bukti transfer yang dapat dihapus. Pesanan dan pembayaran terkait ikut terhapus.')
                     ->using(fn (Reservation $record) => $record->order->delete()),
             ]);
+    }
+
+    /**
+     * Plain-language settlement state for the admin tables.
+     */
+    public static function settlementLabel(Order $order): string
+    {
+        if (! $order->requiresDownPayment()) {
+            return $order->status->isBooked() ? 'Bayar penuh' : '-';
+        }
+
+        return match ($order->status) {
+            OrderStatus::PaidInFull => 'Lunas ('.PaymentPresenter::settlementMethodLabel($order->settlement_method).')',
+            OrderStatus::AwaitingSettlementVerification => 'Bukti pelunasan menunggu verifikasi',
+            OrderStatus::DpPaid => 'Belum lunas',
+            default => '-',
+        };
+    }
+
+    private static function cancellationLabel(?CancellationParty $party): string
+    {
+        return match ($party) {
+            CancellationParty::Tenant => 'Penyewa (DP hangus)',
+            CancellationParty::Manager => 'Pengelola',
+            null => '-',
+        };
     }
 
     /**

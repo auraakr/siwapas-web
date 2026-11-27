@@ -63,7 +63,7 @@ it('refuses a proof after the payment deadline', function () {
     Payment::factory()->for($order)->create();
 
     $this->post(route('orders.proof.store', $order), ['proof' => UploadedFile::fake()->image('bukti.png')])
-        ->assertSessionHasErrors(['proof' => 'Pesanan ini tidak dapat menerima bukti transfer lagi.']);
+        ->assertSessionHasErrors(['proof' => 'Pesanan ini tidak dapat menerima bukti transfer saat ini. Silakan hubungi pengelola.']);
 
     expect($order->fresh()->status)->toBe(OrderStatus::PendingPayment)
         ->and(Storage::disk('local')->allFiles())->toBeEmpty();

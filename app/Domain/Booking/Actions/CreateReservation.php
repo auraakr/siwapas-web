@@ -6,11 +6,13 @@ use App\Domain\Booking\DTOs\ReservationData;
 use App\Domain\Booking\Exceptions\FacilityUnavailable;
 use App\Domain\Booking\Models\Reservation;
 use App\Domain\Booking\Services\AvailabilityChecker;
+use App\Domain\Booking\Services\PaymentDeadline;
 use App\Domain\Booking\Services\PriceCalculator;
 use App\Domain\Catalog\Models\Facility;
 use App\Domain\Payment\Actions\CreateOrder;
 use App\Domain\Payment\Enums\OrderKind;
 use App\Domain\Payment\Models\Order;
+use App\Domain\Payment\Services\PaymentSettings;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -22,11 +24,16 @@ class CreateReservation
         private AvailabilityChecker $availability,
         private PriceCalculator $prices,
         private CreateOrder $createOrder,
+        private PaymentSettings $paymentSettings,
+        private PaymentDeadline $paymentDeadline,
     ) {}
 
     /**
      * Availability is checked under a row lock on the facility; the PostgreSQL
      * exclusion constraint on reservations is the final safety net.
+     *
+     * The order asks for a down payment (percentage from the payment settings, snapshotted on the
+     * order) that is due within the hold period but no later than the start of the check-in day.
      */
     public function handle(ReservationData $data): Order
     {
@@ -40,8 +47,10 @@ class CreateReservation
             throw FacilityUnavailable::invalidRequest('Check-out must be after check-in.');
         }
 
+        $payBefore = $this->paymentDeadline->forCheckIn($data->checkIn->toDateString());
+
         try {
-            return DB::transaction(function () use ($data): Order {
+            return DB::transaction(function () use ($data, $payBefore): Order {
                 $facility = Facility::query()->whereKey($data->facilityId)->lockForUpdate()->firstOrFail();
 
                 if ($facility->capacity !== null && $data->guests > $facility->capacity) {
@@ -54,7 +63,13 @@ class CreateReservation
 
                 $price = $this->prices->calculate($facility, $data->checkIn, $data->checkOut);
 
-                $order = $this->createOrder->handle(OrderKind::Reservation, $data->customer, $price['total']);
+                $order = $this->createOrder->handle(
+                    OrderKind::Reservation,
+                    $data->customer,
+                    $price['total'],
+                    $this->paymentSettings->downPaymentPercentage(),
+                    $payBefore,
+                );
 
                 Reservation::create([
                     'order_id' => $order->id,

@@ -3,6 +3,7 @@
 namespace App\Domain\Payment\Models;
 
 use App\Domain\Payment\Enums\PaymentStatus;
+use App\Domain\Payment\Enums\PaymentType;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Factories\PaymentFactory;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property int $order_id
+ * @property PaymentType $type
  * @property string $method
  * @property int|null $bank_account_id
  * @property list<array{type: string, name: string, account_number: string|null, account_holder: string|null, qris_url: string|null}>|null $bank_snapshot
@@ -27,11 +29,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['order_id', 'method', 'bank_account_id', 'bank_snapshot', 'expected_amount', 'status', 'verified_by', 'verified_at', 'rejection_reason'])]
+#[Fillable(['order_id', 'type', 'method', 'bank_account_id', 'bank_snapshot', 'expected_amount', 'status', 'verified_by', 'verified_at', 'rejection_reason'])]
 #[UseFactory(PaymentFactory::class)]
 
 class Payment extends Model
 {
+    public const METHOD_TRANSFER = 'manual_transfer';
+
+    public const METHOD_CASH = 'cash_on_site';
+
     /** @use HasFactory<PaymentFactory> */
     use HasFactory;
 
@@ -42,6 +48,7 @@ class Payment extends Model
     {
         return [
             'bank_snapshot' => 'array',
+            'type' => PaymentType::class,
             'status' => PaymentStatus::class,
             'verified_at' => 'datetime',
         ];
