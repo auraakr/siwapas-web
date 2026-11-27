@@ -12,7 +12,6 @@ use Database\Seeders\SampleDataSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -87,36 +86,37 @@ class PurgeSampleDataCommand extends Command
             }
         };
 
+        // Translatable names are JSON, which PostgreSQL, MySQL and SQLite compare differently, so the
+        // "Contoh" label is matched in PHP. These tables are small enough to read whole.
         $add(
             'Destinasi',
-            Destination::query()->where(fn (Builder $query) => $query
-                ->where('slug', 'like', 'contoh-%')
-                // Translatable columns are JSON; cast to text so LIKE works on PostgreSQL and SQLite.
-                ->orWhereRaw('CAST(name AS TEXT) LIKE ?', ['%Contoh%']))->orderBy('id')->get(),
+            Destination::query()->orderBy('id')->get()->filter(
+                fn (Destination $destination): bool => str_starts_with($destination->slug, 'contoh-') || $this->labelledSample($destination, 'name'),
+            ),
             fn (Destination $destination): string => $destination->name,
         );
 
         $add(
             'Produk UMKM',
-            LocalProduct::query()->where(fn (Builder $query) => $query
-                ->where('maker_name', 'like', '%Contoh%')
-                ->orWhereRaw('CAST(name AS TEXT) LIKE ?', ['%Contoh%']))->orderBy('id')->get(),
+            LocalProduct::query()->orderBy('id')->get()->filter(
+                fn (LocalProduct $product): bool => str_contains((string) $product->maker_name, 'Contoh') || $this->labelledSample($product, 'name'),
+            ),
             fn (LocalProduct $product): string => $product->name.' · '.$product->maker_name,
         );
 
         $add(
             'Acara',
-            Event::query()->where(fn (Builder $query) => $query
-                ->where('slug', 'like', 'contoh-%')
-                ->orWhereRaw('CAST(title AS TEXT) LIKE ?', ['%Contoh%']))->orderBy('id')->get(),
+            Event::query()->orderBy('id')->get()->filter(
+                fn (Event $event): bool => str_starts_with($event->slug, 'contoh-') || $this->labelledSample($event, 'title'),
+            ),
             fn (Event $event): string => $event->title,
         );
 
         $add(
             'Artikel',
-            Article::query()->where(fn (Builder $query) => $query
-                ->where('slug', 'like', 'contoh-%')
-                ->orWhereRaw('CAST(title AS TEXT) LIKE ?', ['%Contoh%']))->orderBy('id')->get(),
+            Article::query()->orderBy('id')->get()->filter(
+                fn (Article $article): bool => str_starts_with($article->slug, 'contoh-') || $this->labelledSample($article, 'title'),
+            ),
             fn (Article $article): string => $article->title,
         );
 
@@ -137,6 +137,20 @@ class PurgeSampleDataCommand extends Command
         );
 
         return $entries;
+    }
+
+    /**
+     * Whether any translation of the attribute carries the "Contoh" label.
+     */
+    private function labelledSample(Destination|LocalProduct|Event|Article $model, string $attribute): bool
+    {
+        foreach ($model->getTranslations($attribute) as $text) {
+            if (is_string($text) && str_contains($text, 'Contoh')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isSampleFaq(Faq $faq): bool

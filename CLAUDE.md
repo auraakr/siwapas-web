@@ -15,6 +15,14 @@ Website for Desa Wisata Pasirnanjung Geulis (Indonesia): public tourism content,
 - Credentials live only in .env (git-ignored); .env.example holds placeholders.
 - Tests run on in-memory SQLite (phpunit.xml) and never touch Supabase. The exclusion-constraint test (ReservationExclusionTest) is skipped unless it runs on a PostgreSQL database whose name contains "test".
 
+## Database portability (PostgreSQL now, MySQL in production)
+- Development and the Railway trial use PostgreSQL (Supabase); production at Hostinger will use MySQL. All new code and migrations must work on PostgreSQL, MySQL and SQLite (tests).
+- Use the schema builder and query builder only. No raw SQL tied to one database (whereRaw/selectRaw/DB::statement with ::casts, ILIKE, jsonb operators, CAST(... AS TEXT), RETURNING, etc.). If a database-specific feature is unavoidable, guard it with DB::getDriverName() and give the other databases a working fallback.
+- Translatable columns are JSON. Do not search inside them with SQL; filter in PHP (getTranslations) or query a plain column instead.
+- Dates: compute day boundaries and Asia/Jakarta conversions in PHP, then query plain UTC ranges. Avoid database date functions and time zone conversion in SQL.
+- Double booking must be prevented at the application level on every database: availability is checked inside a transaction after lockForUpdate() on the facility row. The PostgreSQL exclusion constraint (migration 000019) is an extra safety net that MySQL does not have, so never rely on it alone.
+- Keep indexed string columns at the default length (255) or shorter so they fit MySQL utf8mb4 index limits.
+
 ## Shared database: read before touching data
 - The local .env points at the SHARED Supabase database that the team and the Railway trial use. Anything written from a local shell is written there.
 - Never run db:seed, migrate:fresh, migrate:refresh, migrate:reset, migrate:rollback, db:wipe or siwapas:purge-sample-data --force against Supabase without the user's explicit approval for that run. A plain `php artisan migrate` also needs approval: show the migration and `migrate --pretend` first.
