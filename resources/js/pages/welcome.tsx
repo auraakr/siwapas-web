@@ -1,7 +1,7 @@
 import { Head, usePage } from '@inertiajs/react';
 import About from '@/components/landing/about';
-import Activities from '@/components/landing/activities';
 import Destinations from '@/components/landing/destinations';
+import Experience from '@/components/landing/experience';
 import Events from '@/components/landing/events';
 import FacilitiesBanner from '@/components/landing/facilities-banner';
 import FinalCta from '@/components/landing/final-cta';
@@ -10,17 +10,19 @@ import Partners from '@/components/landing/partners';
 import Posters from '@/components/landing/posters';
 import Products from '@/components/landing/products';
 import Stories from '@/components/landing/stories';
-import Testimonials from '@/components/landing/testimonials';
 import VisitInfo from '@/components/landing/visit-info';
+import VisitStrip from '@/components/landing/visit-strip';
+import HostEvent from '@/components/site/host-event';
 import { useTranslation } from '@/lib/i18n';
 import type { LandingProps } from '@/types/landing';
 
 export default function Welcome({
     images,
     video_url,
+    visit,
     destinations,
-    activities,
     facilities,
+    event_venues,
     products,
     posters,
     events,
@@ -67,20 +69,19 @@ export default function Welcome({
             </Head>
 
             <Hero image={images.hero} videoUrl={video_url} />
+            <VisitStrip visit={visit} />
             <About image={images.about} address={contact.address} />
             <Partners />
             <Destinations destinations={destinations} />
-            <Activities
-                activities={activities}
-                whatsappUrl={contact.whatsapp_url}
-            />
+            <Experience />
             <FacilitiesBanner items={facilities} />
             <Products products={products} />
             <Posters items={posters} />
             <Events items={events} />
+            <HostEvent venues={event_venues} />
             <Stories articles={articles} />
-            <Testimonials />
-            <VisitInfo contact={contact} faqs={faqs} />
+            {/* Testimonials stay hidden until there are real visitor reviews. */}
+            <VisitInfo visit={visit} contact={contact} faqs={faqs} />
             <FinalCta whatsappUrl={contact.whatsapp_url} />
         </>
     );

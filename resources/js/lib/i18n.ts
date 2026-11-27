@@ -375,6 +375,47 @@ const id = {
         'Transfer sisa pembayaran lalu unggah buktinya paling lambat {date} (tanggal check-out), atau bayar tunai di lokasi.',
     'order.uploadDpTitle': 'Unggah bukti transfer DP',
     'order.uploadSettlementTitle': 'Unggah bukti pelunasan',
+
+    // Landing: experiences (official copy from the client), visit information, hosting an event
+    'experience.eyebrow': 'Pengalaman Wisata',
+    'experience.title':
+        'Pengalaman Wisata dalam Harmoni Alam, Hiburan, dan Budaya',
+    'experience.description':
+        'Pasirnanjung Geulis menghadirkan pengalaman berwisata dengan suasana alam terbuka, beragam hiburan, serta kegiatan yang mempererat kebersamaan. Nikmati waktu berkualitas melalui berbagai aktivitas yang tersedia di kawasan wisata.',
+    'experience.nature.title': 'Menikmati Keindahan Alam',
+    'experience.nature.text':
+        'Rasakan suasana alam yang asri dengan pemandangan terbuka yang cocok untuk bersantai dan melepas penat.',
+    'experience.adventure.title': 'Aktivitas dan Petualangan',
+    'experience.adventure.text':
+        'Isi waktu dengan kegiatan camping, olahraga, dan aktivitas luar ruang bersama keluarga maupun teman.',
+    'experience.culture.title': 'Hiburan dan Seni Budaya',
+    'experience.culture.text':
+        'Nikmati berbagai pertunjukan musik dan kesenian tradisional Sunda yang turut meramaikan suasana wisata.',
+    'experience.together.title': 'Ruang untuk Kebersamaan',
+    'experience.together.text':
+        'Jadikan momen berkumpul lebih berkesan melalui family gathering, acara komunitas, dan berbagai kegiatan bersama.',
+    'visitInfo.hours': 'Jam operasional',
+    'visitInfo.hoursUnknown': 'Hubungi pengelola untuk jam buka.',
+    'visitInfo.admission': 'HTM',
+    'visitInfo.bookFacility': 'Reservasi Fasilitas',
+    'visitInfo.rental': 'Sewa fasilitas',
+    'visitInfo.rentalText':
+        'Penyewaan fasilitas dikenakan biaya sesuai fasilitas dan tanggal yang dipilih.',
+    'visitInfo.rentalLink': 'Lihat fasilitas & harga',
+    'visitInfo.events': 'Event khusus',
+    'visitInfo.eventsText':
+        'Event khusus dapat memiliki tiket tersendiri. Cek detailnya di halaman event.',
+    'visitInfo.eventsLink': 'Lihat event',
+    'visitInfo.reachUs': 'Alamat & kontak',
+    'hostEvent.eyebrow': 'Acara Sendiri',
+    'hostEvent.title': 'Ingin Mengadakan Acara Sendiri?',
+    'hostEvent.description':
+        'Pasirnanjung Geulis terbuka untuk acara komunitas, family gathering, pertunjukan, dan kegiatan lainnya. Ceritakan rencanamu, pengelola akan membantu memilih tempat dan tanggal yang pas.',
+    'hostEvent.contact': 'Hubungi Pengelola',
+    'hostEvent.message':
+        'Halo, saya ingin mengadakan acara di Pasirnanjung Geulis. Bisa dibantu informasi tempat dan tanggalnya?',
+    'hostEvent.venues': 'Fasilitas yang cocok untuk acara',
+    'hostEvent.allFacilities': 'Lihat semua fasilitas',
 } as const;
 
 export type MessageKey = keyof typeof id;
@@ -736,6 +777,46 @@ const en: Record<MessageKey, string> = {
         'Transfer the remaining balance and upload the proof by {date} (check-out date), or pay in cash on site.',
     'order.uploadDpTitle': 'Upload the down payment proof',
     'order.uploadSettlementTitle': 'Upload the balance proof',
+
+    'experience.eyebrow': 'Experiences',
+    'experience.title':
+        'Tourism Experiences in Harmony with Nature, Entertainment and Culture',
+    'experience.description':
+        'Pasirnanjung Geulis offers a visit surrounded by open nature, with a variety of entertainment and activities that bring people closer together. Spend quality time through the many activities available in the tourism area.',
+    'experience.nature.title': 'Enjoy the Beauty of Nature',
+    'experience.nature.text':
+        'Feel the fresh natural surroundings and open views, perfect for relaxing and unwinding.',
+    'experience.adventure.title': 'Activities and Adventure',
+    'experience.adventure.text':
+        'Fill your time with camping, sports and outdoor activities with family and friends.',
+    'experience.culture.title': 'Entertainment, Arts and Culture',
+    'experience.culture.text':
+        'Enjoy music performances and traditional Sundanese arts that liven up the atmosphere.',
+    'experience.together.title': 'A Place for Togetherness',
+    'experience.together.text':
+        'Make get-togethers more memorable with family gatherings, community events and other shared activities.',
+    'visitInfo.hours': 'Opening hours',
+    'visitInfo.hoursUnknown': 'Contact the managers for opening hours.',
+    'visitInfo.admission': 'Admission',
+    'visitInfo.bookFacility': 'Book a Facility',
+    'visitInfo.rental': 'Facility rental',
+    'visitInfo.rentalText':
+        'Renting a facility is charged according to the facility and the dates you choose.',
+    'visitInfo.rentalLink': 'See facilities & prices',
+    'visitInfo.events': 'Special events',
+    'visitInfo.eventsText':
+        'Special events may have their own tickets. See the event page for details.',
+    'visitInfo.eventsLink': 'See events',
+    'visitInfo.reachUs': 'Address & contact',
+    'hostEvent.eyebrow': 'Your Own Event',
+    'hostEvent.title': 'Want to Host Your Own Event?',
+    'hostEvent.description':
+        'Pasirnanjung Geulis welcomes community events, family gatherings, performances and more. Tell us your plans and the managers will help you find the right venue and date.',
+    'hostEvent.contact': 'Contact the Managers',
+    'hostEvent.message':
+        'Hello, I would like to hold an event at Pasirnanjung Geulis. Could you help me with the venues and dates?',
+    'hostEvent.venues': 'Facilities suited to events',
+    'hostEvent.allFacilities': 'See all facilities',
 };
 
 const messages: Record<Locale, Record<MessageKey, string>> = { id, en };

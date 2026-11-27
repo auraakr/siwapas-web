@@ -39,7 +39,6 @@ const navigation: NavItem[] = [
                         href: destinations.index().url,
                     },
                     { label: 'nav.facilities', href: facilities.index().url },
-                    { label: 'nav.activities', href: '/#pengalaman' },
                     { label: 'nav.events', href: events.index().url },
                 ],
             },

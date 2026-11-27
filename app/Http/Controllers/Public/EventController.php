@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Domain\Catalog\Actions\ListEventVenues;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use App\Http\Controllers\Controller;
@@ -10,9 +11,10 @@ use Inertia\Response;
 
 class EventController extends Controller
 {
-    public function index(): Response
+    public function index(ListEventVenues $listEventVenues): Response
     {
         return Inertia::render('public/events/index', [
+            'event_venues' => $listEventVenues->handle(),
             'events' => Event::query()
                 ->where('status', EventStatus::Published)
                 ->where('starts_at', '>=', now()->startOfDay())

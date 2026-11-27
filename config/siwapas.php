@@ -32,7 +32,7 @@ return [
         'whatsapp' => env('SIWAPAS_CONTACT_WHATSAPP'),
         'email' => env('SIWAPAS_CONTACT_EMAIL'),
         'address' => env('SIWAPAS_CONTACT_ADDRESS'),
-        'hours' => env('SIWAPAS_CONTACT_HOURS'),
+        'hours' => env('SIWAPAS_CONTACT_HOURS', '09.00–23.00 WIB'),
         'maps_url' => env('SIWAPAS_MAPS_URL'),
         'instagram' => env('SIWAPAS_INSTAGRAM_URL'),
         'facebook' => env('SIWAPAS_FACEBOOK_URL'),
@@ -41,6 +41,17 @@ return [
 
     'landing' => [
         'video_url' => env('SIWAPAS_HERO_VIDEO_URL'),
+    ],
+
+    /*
+    | Visit information shown on the landing page. The managers can change the contact details,
+    | opening hours and admission text under Pengaturan Situs; these are the fallbacks.
+    */
+    'visit' => [
+        'admission' => [
+            'id' => 'Gratis untuk kunjungan reguler.',
+            'en' => 'Free for regular visits.',
+        ],
     ],
 
     /*

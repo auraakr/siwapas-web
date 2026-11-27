@@ -7,6 +7,7 @@ use App\Domain\Booking\DTOs\ReservationData;
 use App\Domain\Booking\Exceptions\BookingTooSoon;
 use App\Domain\Booking\Exceptions\FacilityUnavailable;
 use App\Domain\Catalog\Models\Facility;
+use App\Domain\Content\Services\SiteSettings;
 use App\Domain\Payment\DTOs\CustomerData;
 use App\Domain\Payment\Exceptions\PaymentNotPossible;
 use App\Http\Controllers\Controller;
@@ -37,7 +38,7 @@ class ReservationController extends Controller
             ));
         } catch (BookingTooSoon) {
             // Same-day and very short-notice rentals are arranged with the managers directly.
-            $whatsapp = config('siwapas.contact.whatsapp');
+            $whatsapp = app(SiteSettings::class)->contact()['whatsapp'];
             $contact = filled($whatsapp) ? " {$whatsapp}" : '';
 
             return back()->withInput()->withErrors([

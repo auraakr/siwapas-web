@@ -8,11 +8,14 @@ use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\Faq;
 use App\Domain\Content\Models\LocalProduct;
 use App\Domain\Content\Models\Poster;
+use App\Domain\Content\Models\SiteSetting;
+use App\Domain\Content\Services\SiteSettings;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use Database\Seeders\SampleDataSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('renders the landing page even when there is no content yet', function () {
@@ -21,8 +24,9 @@ it('renders the landing page even when there is no content yet', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('welcome')
             ->where('destinations', [])
-            ->where('activities', [])
+            ->missing('activities')
             ->where('facilities', [])
+            ->where('event_venues', [])
             ->where('products', [])
             ->where('posters', [])
             ->where('events', [])
@@ -32,7 +36,7 @@ it('renders the landing page even when there is no content yet', function () {
             ->where('images.hero', null));
 });
 
-it('lists only published destinations, featured first, and keeps activities separate', function () {
+it('lists only published destinations, featured first, and leaves activities to the destinations page', function () {
     Destination::factory()->create(['name' => ['id' => 'Biasa'], 'is_featured' => false, 'sort_order' => 1]);
     Destination::factory()->create(['name' => ['id' => 'Unggulan'], 'is_featured' => true, 'sort_order' => 2]);
     Destination::factory()->create(['name' => ['id' => 'Draf'], 'status' => PublishStatus::Draft]);
@@ -43,16 +47,14 @@ it('lists only published destinations, featured first, and keeps activities sepa
             ->has('destinations', 2)
             ->where('destinations.0.name', 'Unggulan')
             ->where('destinations.1.name', 'Biasa')
-            ->has('activities', 1)
-            ->where('activities.0.name', 'Arung Jeram'));
+            ->missing('activities'));
 });
 
-it('shows at most four destinations and three activities', function () {
+it('shows at most four destinations', function () {
     Destination::factory()->count(6)->create();
-    Destination::factory()->count(5)->create(['type' => DestinationType::Activity]);
 
     $this->get(route('home'))
-        ->assertInertia(fn (Assert $page) => $page->has('destinations', 4)->has('activities', 3));
+        ->assertInertia(fn (Assert $page) => $page->has('destinations', 4));
 });
 
 it('shows active facilities with their starting price', function () {
@@ -198,7 +200,6 @@ it('fills every landing page section from the sample data seeder, without duplic
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->has('destinations', 4)
-            ->has('activities', 3)
             ->has('products', 4)
             ->has('events', 3)
             ->has('articles', 3)
@@ -221,4 +222,91 @@ it('lists posters that have an image, in order, falling back to the title for al
             ->where('posters.0.title', 'Pertama')
             ->where('posters.0.alt', 'Alt pertama')
             ->where('posters.1.alt', 'Kedua'));
+});
+
+describe('posters', function () {
+    it('shows only published posters, in the order the managers set, newest first among equals', function () {
+        $hidden = Poster::factory()->create(['title' => ['id' => 'Disembunyikan'], 'is_published' => false]);
+        $later = Poster::factory()->create(['title' => ['id' => 'Urutan dua'], 'sort_order' => 2]);
+        $olderFirst = Poster::factory()->create(['title' => ['id' => 'Urutan satu lama'], 'sort_order' => 1]);
+        $newerFirst = Poster::factory()->create(['title' => ['id' => 'Urutan satu baru'], 'sort_order' => 1]);
+
+        foreach ([$hidden, $later, $olderFirst, $newerFirst] as $poster) {
+            $poster->addMedia(UploadedFile::fake()->image('p.jpg'))->toMediaCollection('default');
+        }
+
+        $this->get(route('home'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('posters', 3)
+                ->where('posters.0.title', 'Urutan satu baru')
+                ->where('posters.1.title', 'Urutan satu lama')
+                ->where('posters.2.title', 'Urutan dua'));
+    });
+});
+
+describe('visit information and contact', function () {
+    it('falls back to the configured hours, admission text and contact while nothing is set', function () {
+        config(['siwapas.contact.whatsapp' => '081211112222', 'siwapas.contact.hours' => '09.00–23.00 WIB']);
+
+        $this->get(route('home'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('visit.hours', '09.00–23.00 WIB')
+                ->where('visit.admission', 'Gratis untuk kunjungan reguler.')
+                ->where('site.contact.whatsapp', '081211112222')
+                ->where('site.contact.whatsapp_url', 'https://wa.me/6281211112222'));
+    });
+
+    it('uses what the managers saved under Pengaturan Situs over the .env values', function () {
+        config(['siwapas.contact.whatsapp' => '081211112222', 'siwapas.contact.email' => 'lama@desa.test']);
+        app(SiteSettings::class)->save([
+            'contact' => ['whatsapp' => '085733334444', 'hours' => '08.00–22.00 WIB', 'email' => ''],
+            'admission' => ['id' => 'HTM Rp5.000 per orang.', 'en' => 'Entry Rp5,000 per person.'],
+        ]);
+
+        $this->get(route('home'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('visit.hours', '08.00–22.00 WIB')
+                ->where('visit.admission', 'HTM Rp5.000 per orang.')
+                ->where('site.contact.whatsapp', '085733334444')
+                ->where('site.contact.email', 'lama@desa.test'));
+    });
+
+    it('shows the admission text in English after switching language', function () {
+        app(SiteSettings::class)->save(['admission' => ['id' => 'Gratis.', 'en' => 'Free entry.']]);
+
+        $this->withSession(['locale' => 'en'])->get(route('home'))
+            ->assertInertia(fn (Assert $page) => $page->where('visit.admission', 'Free entry.'));
+    });
+});
+
+describe('hosting your own event', function () {
+    it('suggests the active facilities the managers picked, in facility order', function () {
+        $stage = Facility::factory()->create(['slug' => 'panggung', 'name' => ['id' => 'Panggung'], 'sort_order' => 2]);
+        $field = Facility::factory()->create(['slug' => 'lapangan', 'name' => ['id' => 'Lapangan'], 'sort_order' => 1]);
+        $closed = Facility::factory()->create(['slug' => 'arena', 'is_active' => false]);
+        Facility::factory()->create(['slug' => 'aula']);
+        app(SiteSettings::class)->save(['event_venue_facility_ids' => [$stage->id, $field->id, $closed->id]]);
+
+        $this->get(route('home'))
+            ->assertInertia(fn (Assert $page) => $page->where('event_venues', [
+                ['slug' => 'lapangan', 'name' => 'Lapangan'],
+                ['slug' => 'panggung', 'name' => 'Panggung'],
+            ]));
+
+        $this->get(route('events.index'))
+            ->assertInertia(fn (Assert $page) => $page->has('event_venues', 2));
+    });
+});
+
+describe('landing photos', function () {
+    it('prefers the photo uploaded under Pengaturan Situs', function () {
+        Storage::fake('public');
+        app(SiteSettings::class)->imagesRecord()
+            ->addMedia(UploadedFile::fake()->image('hero.jpg'))
+            ->toMediaCollection(SiteSetting::HERO_IMAGE);
+
+        $this->get(route('home'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('images.hero', fn (string $url): bool => str_contains($url, 'hero.jpg')));
+    });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Content\Actions;
 
+use App\Domain\Catalog\Actions\ListEventVenues;
 use App\Domain\Catalog\Models\Facility;
 use App\Domain\Content\Enums\DestinationType;
 use App\Domain\Content\Enums\PublishStatus;
@@ -9,6 +10,8 @@ use App\Domain\Content\Models\Article;
 use App\Domain\Content\Models\Destination;
 use App\Domain\Content\Models\Faq;
 use App\Domain\Content\Models\Poster;
+use App\Domain\Content\Models\SiteSetting;
+use App\Domain\Content\Services\SiteSettings;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use Spatie\MediaLibrary\HasMedia;
@@ -18,7 +21,11 @@ use Spatie\MediaLibrary\HasMedia;
  */
 class GetLandingPageContent
 {
-    public function __construct(private ListPublishedProducts $listPublishedProducts) {}
+    public function __construct(
+        private ListPublishedProducts $listPublishedProducts,
+        private ListEventVenues $listEventVenues,
+        private SiteSettings $settings,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -27,13 +34,17 @@ class GetLandingPageContent
     {
         return [
             'images' => [
-                'hero' => $this->staticImage('hero'),
-                'about' => $this->staticImage('about'),
+                'hero' => $this->image(SiteSetting::HERO_IMAGE),
+                'about' => $this->image(SiteSetting::ABOUT_IMAGE),
             ],
             'video_url' => config('siwapas.landing.video_url') ?: null,
+            'visit' => [
+                'hours' => $this->settings->contact()['hours'],
+                'admission' => $this->settings->admissionFor(app()->getLocale()),
+            ],
             'destinations' => $this->destinations(DestinationType::Destination, 4),
-            'activities' => $this->destinations(DestinationType::Activity, 3),
             'facilities' => $this->facilities(),
+            'event_venues' => $this->listEventVenues->handle(),
             'products' => $this->listPublishedProducts->handle(limit: 4),
             'posters' => $this->posters(),
             'events' => $this->events(),
@@ -43,10 +54,17 @@ class GetLandingPageContent
     }
 
     /**
-     * A photo dropped into public/images/landing (hero.jpg, about.jpg, ...), if present.
+     * The photo uploaded under Pengaturan Situs, else one dropped into public/images/landing
+     * (hero.jpg, about.jpg, ...), else null so the page shows its own placeholder.
      */
-    private function staticImage(string $name): ?string
+    private function image(string $name): ?string
     {
+        $uploaded = $this->settings->imageUrl($name);
+
+        if ($uploaded !== null) {
+            return $uploaded;
+        }
+
         foreach (['jpg', 'jpeg', 'webp', 'png'] as $extension) {
             if (is_file(public_path("images/landing/{$name}.{$extension}"))) {
                 return asset("images/landing/{$name}.{$extension}");
@@ -116,6 +134,8 @@ class GetLandingPageContent
     {
         return Poster::query()
             ->with('media')
+            ->where('is_published', true)
+            ->orderBy('sort_order')
             ->orderByDesc('id')
             ->get()
             ->map(fn (Poster $poster): array => [

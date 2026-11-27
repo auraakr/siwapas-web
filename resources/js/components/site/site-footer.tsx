@@ -9,7 +9,6 @@ import facilities from '@/routes/facilities';
 const exploreLinks: { label: MessageKey; href: string }[] = [
     { label: 'nav.profile', href: '/profil-desa' },
     { label: 'nav.destinations', href: destinations.index().url },
-    { label: 'nav.activities', href: '/#pengalaman' },
     { label: 'nav.gallery', href: '/galeri' },
     {
         label: 'nav.products',

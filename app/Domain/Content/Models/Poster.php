@@ -18,10 +18,12 @@ use Spatie\Translatable\HasTranslations;
  * @property int $id
  * @property string $title
  * @property string|null $alt
+ * @property int $sort_order
+ * @property bool $is_published
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['title', 'alt'])]
+#[Fillable(['title', 'alt', 'sort_order', 'is_published'])]
 #[UseFactory(PosterFactory::class)]
 class Poster extends Model implements HasMedia
 {
@@ -32,4 +34,15 @@ class Poster extends Model implements HasMedia
      * @var list<string>
      */
     public array $translatable = ['title', 'alt'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+            'is_published' => 'boolean',
+        ];
+    }
 }

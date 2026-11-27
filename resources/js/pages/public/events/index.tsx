@@ -1,9 +1,11 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, MapPin } from 'lucide-react';
+import HostEvent from '@/components/site/host-event';
 import PageTitle from '@/components/site/page-title';
 import { formatDateTime, formatRupiah } from '@/lib/format';
 import { useTranslation } from '@/lib/i18n';
 import { show } from '@/routes/events';
+import type { EventVenue } from '@/types/landing';
 
 type EventSummary = {
     slug: string;
@@ -13,7 +15,13 @@ type EventSummary = {
     fee: number;
 };
 
-export default function EventsIndex({ events }: { events: EventSummary[] }) {
+export default function EventsIndex({
+    events,
+    event_venues,
+}: {
+    events: EventSummary[];
+    event_venues: EventVenue[];
+}) {
     const { t, locale } = useTranslation();
     const tag = locale === 'en' ? 'en-GB' : 'id-ID';
     // Fixed zone: the server and the browser must print the same day, or hydration complains.
@@ -102,6 +110,8 @@ export default function EventsIndex({ events }: { events: EventSummary[] }) {
                     ))}
                 </ul>
             )}
+
+            <HostEvent venues={event_venues} className="mt-14 rounded-2xl" />
         </>
     );
 }

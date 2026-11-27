@@ -10,6 +10,7 @@ use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PosterResource extends Resource
 {
@@ -44,6 +45,13 @@ class PosterResource extends Resource
                     ->label('Teks alternatif (alt)')
                     ->maxLength(255)
                     ->helperText('Deskripsi singkat gambar untuk pembaca layar dan SEO. Jika kosong, judul dipakai.'),
+                Forms\Components\TextInput::make('sort_order')
+                    ->label('Urutan')
+                    ->helperText('Angka kecil tampil lebih dulu. Urutan juga bisa diatur dengan menyeret baris di daftar poster.')
+                    ->numeric()
+                    ->default(0)
+                    ->required(),
+                Forms\Components\Toggle::make('is_published')->label('Tampilkan di beranda')->default(true),
             ]),
         ]);
     }
@@ -55,8 +63,12 @@ class PosterResource extends Resource
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('image')->label('Gambar')->collection('default')->limit(1),
                 Tables\Columns\TextColumn::make('title')->label('Judul')->searchable()->limit(50),
                 Tables\Columns\TextColumn::make('alt')->label('Alt')->limit(50)->placeholder('—'),
+                Tables\Columns\ToggleColumn::make('is_published')->label('Tampil'),
+                Tables\Columns\TextColumn::make('sort_order')->label('Urutan')->sortable(),
             ])
-            ->defaultSort('id', 'desc')
+            // Same order as the carousel: manual order first, newest first among equals.
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderBy('sort_order')->orderByDesc('id'))
+            ->reorderable('sort_order')
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

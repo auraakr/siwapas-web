@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\PaymentSettingsPage;
+use App\Filament\Pages\SiteSettingsPage;
 use App\Http\Middleware\AuthenticateAdminPanel;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -67,6 +68,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
                 PaymentSettingsPage::class,
+                SiteSettingsPage::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
