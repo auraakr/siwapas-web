@@ -5,16 +5,12 @@ import destinations from '@/routes/destinations';
 import events from '@/routes/events';
 import facilities from '@/routes/facilities';
 
-// "Sewa Fasilitas" lives in the Services column, so it is not repeated here.
+// Mirrors the header; "Sewa Fasilitas" and "Kunjungan" live in the Services column.
 const exploreLinks: { label: MessageKey; href: string }[] = [
+    { label: 'nav.home', href: home().url },
     { label: 'nav.profile', href: '/profil-desa' },
-    { label: 'nav.destinations', href: destinations.index().url },
+    { label: 'nav.explore.destinations', href: destinations.index().url },
     { label: 'nav.gallery', href: '/galeri' },
-    {
-        label: 'nav.products',
-        href: destinations.index({ query: { tab: 'umkm' } }).url,
-    },
-    { label: 'nav.stories', href: '/#cerita' },
 ];
 
 export default function SiteFooter() {

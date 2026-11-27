@@ -3,19 +3,26 @@
 namespace App\Http\Controllers\Public;
 
 use App\Domain\Catalog\Actions\ListEventVenues;
+use App\Domain\Event\Actions\BuildEventCalendar;
 use App\Domain\Event\Enums\EventStatus;
 use App\Domain\Event\Models\Event;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class EventController extends Controller
 {
-    public function index(ListEventVenues $listEventVenues): Response
+    /**
+     * Upcoming events plus a month calendar. The calendar follows ?bulan=YYYY-MM (current month in
+     * Asia/Jakarta otherwise); switching months reloads only the calendar prop.
+     */
+    public function index(Request $request, ListEventVenues $listEventVenues, BuildEventCalendar $buildEventCalendar): Response
     {
         return Inertia::render('public/events/index', [
-            'event_venues' => $listEventVenues->handle(),
-            'events' => Event::query()
+            'calendar' => fn (): array => $buildEventCalendar->handle($request->string('bulan')->toString() ?: null),
+            'event_venues' => fn (): array => $listEventVenues->handle(),
+            'events' => fn () => Event::query()
                 ->where('status', EventStatus::Published)
                 ->where('starts_at', '>=', now()->startOfDay())
                 ->orderBy('starts_at')

@@ -38,7 +38,8 @@ class PageResource extends Resource
     public const KEYS = [
         'profile' => 'Profil Desa: Identitas Wisata (Tentang Kami)',
         'history' => 'Profil Desa: Sejarah',
-        'vision' => 'Profil Desa: Visi & Misi',
+        'vision' => 'Profil Desa: Visi',
+        'mission' => 'Profil Desa: Misi',
         'management' => 'Profil Desa: Pengelola',
         'potential' => 'Profil Desa: Potensi Desa',
         'visit_info' => 'Kunjungan Kami: Informasi Reservasi',
@@ -52,6 +53,7 @@ class PageResource extends Resource
         'profile' => 'profil-desa',
         'history' => 'sejarah',
         'vision' => 'visi-misi',
+        'mission' => 'misi',
         'management' => 'pengelola',
         'potential' => 'potensi-desa',
         'visit_info' => 'informasi-reservasi',
@@ -83,6 +85,11 @@ class PageResource extends Resource
                 Forms\Components\RichEditor::make('body')
                     ->label('Isi')
                     ->toolbarButtons(['bold', 'italic', 'h2', 'h3', 'bulletList', 'orderedList', 'blockquote', 'link', 'undo', 'redo'])
+                    ->helperText(fn (Forms\Get $get): ?string => match ($get('key')) {
+                        'vision' => 'Tulis kalimat visinya saja. Di halaman Profil Desa visi tampil sebagai kutipan besar.',
+                        'mission' => 'Tulis setiap misi sebagai satu butir daftar bernomor. Butir-butir ini tampil sebagai daftar bernomor di bawah visi.',
+                        default => null,
+                    })
                     ->columnSpanFull(),
             ]),
             Forms\Components\Section::make('Mesin pencari (SEO)')->columns(1)->collapsed()->schema([

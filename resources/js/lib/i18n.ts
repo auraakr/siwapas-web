@@ -270,8 +270,8 @@ const id = {
     'copy.done': 'Tersalin',
     'copy.failed': 'Gagal menyalin',
 
-    'nav.profile': 'Profil Wisata',
-    'nav.visit': 'Kunjungan Kami',
+    'nav.profile': 'Profil Desa',
+    'nav.visit': 'Kunjungan',
     'village.sections': 'Bagian halaman',
     'village.location': 'Lokasi',
     'visit.pageTitle': 'Rencanakan Kunjunganmu',
@@ -416,6 +416,66 @@ const id = {
         'Halo, saya ingin mengadakan acara di Pasirnanjung Geulis. Bisa dibantu informasi tempat dan tanggalnya?',
     'hostEvent.venues': 'Fasilitas yang cocok untuk acara',
     'hostEvent.allFacilities': 'Lihat semua fasilitas',
+
+    // Navigation, village profile, events calendar and visit page structure
+    'nav.explore.facilities': 'Fasilitas',
+    'nav.explore.destinations': 'Destinasi & UMKM',
+    'nav.explore.events': 'Event & Kalender',
+    'about.more': 'Selengkapnya',
+    'village.nav.about': 'Tentang Kami',
+    'village.nav.history': 'Sejarah',
+    'village.nav.vision': 'Visi & Misi',
+    'village.nav.management': 'Pengelola',
+    'village.nav.potential': 'Potensi Desa',
+    'village.nav.location': 'Lokasi',
+    'village.heading.about': 'Tentang Kami',
+    'village.heading.history': 'Perjalanan Menuju Pasirnanjung Geulis',
+    'village.heading.vision': 'Visi & Misi',
+    'village.heading.management': 'Pengelola Desa Wisata',
+    'village.heading.potential': 'Pasirnanjung Geulis, Tumbuh Bersama Warganya',
+    'village.heading.location': 'Lokasi',
+    'village.visionLabel': 'Visi',
+    'village.missionLabel': 'Misi',
+    'village.directions': 'Petunjuk Arah',
+    'village.mapTitle': 'Peta lokasi Desa Wisata Pasirnanjung Geulis',
+    'events.upcoming': 'Acara Mendatang',
+    'calendar.details': 'Lihat detail',
+    'calendar.previous': 'Bulan sebelumnya',
+    'calendar.next': 'Bulan berikutnya',
+    'calendar.today': 'Hari ini',
+    'calendar.eventCount': '{count} acara',
+    'calendar.noEventsDay': 'Tidak ada acara di tanggal ini.',
+    'calendar.noEventsMonth': 'Belum ada acara di bulan ini.',
+    'visit.facilitiesTitle': 'Fasilitas & Harga',
+    'visit.facilitiesDescription':
+        'Harga dasar per satuan sewa. Harga akhir dihitung otomatis saat kamu memilih tanggal.',
+    'visit.perDay': '/ hari',
+    'visit.reserve': 'Reservasi',
+    'visit.flow.choose.title': 'Pilih fasilitas & tanggal',
+    'visit.flow.choose.text':
+        'Buka halaman fasilitas dan pilih tanggal yang masih tersedia.',
+    'visit.flow.form.title': 'Isi formulir',
+    'visit.flow.form.text':
+        'Tulis nama, nomor WhatsApp, dan jumlah tamu. Tidak perlu membuat akun.',
+    'visit.flow.pay.title': 'Bayar DP {percent}% & unggah bukti',
+    'visit.flow.pay.text':
+        'Transfer DP sesuai nominal di halaman pesanan, lalu unggah bukti transfernya.',
+    'visit.flow.verify.title': 'Tunggu verifikasi admin',
+    'visit.flow.verify.text':
+        'Pengelola memeriksa bukti transfermu, paling lambat 1×24 jam.',
+    'visit.flow.confirmed.title': 'Booking terkonfirmasi',
+    'visit.flow.confirmed.text':
+        'Setelah DP diverifikasi, tanggalmu aman dan tidak bisa dipesan orang lain.',
+    'visit.flow.settle.title': 'Pelunasan',
+    'visit.flow.settle.text':
+        'Lunasi sisanya lewat transfer (unggah bukti di halaman pesanan) atau tunai di lokasi.',
+    'visit.shortNoticeTitle': 'Sewa mendadak atau per jam?',
+    'visit.shortNoticeText':
+        'Untuk sewa mendadak atau fasilitas per jam (misal saung/karaoke), hubungi pengelola via WhatsApp {phone}.',
+    'visit.shortNoticeTextNoPhone':
+        'Untuk sewa mendadak atau fasilitas per jam (misal saung/karaoke), hubungi pengelola via WhatsApp.',
+    'visit.chatManagers': 'Chat pengelola',
+    'visit.termsTitle': 'Ketentuan Reservasi',
 } as const;
 
 export type MessageKey = keyof typeof id;
@@ -675,8 +735,8 @@ const en: Record<MessageKey, string> = {
     'copy.done': 'Copied',
     'copy.failed': 'Could not copy',
 
-    'nav.profile': 'Tourism Profile',
-    'nav.visit': 'Visit Us',
+    'nav.profile': 'Village Profile',
+    'nav.visit': 'Visit',
     'village.sections': 'Sections on this page',
     'village.location': 'Location',
     'visit.pageTitle': 'Plan Your Visit',
@@ -817,6 +877,66 @@ const en: Record<MessageKey, string> = {
         'Hello, I would like to hold an event at Pasirnanjung Geulis. Could you help me with the venues and dates?',
     'hostEvent.venues': 'Facilities suited to events',
     'hostEvent.allFacilities': 'See all facilities',
+
+    'nav.explore.facilities': 'Facilities',
+    'nav.explore.destinations': 'Destinations & Local Products',
+    'nav.explore.events': 'Events & Calendar',
+    'about.more': 'Read more',
+    'village.nav.about': 'About Us',
+    'village.nav.history': 'History',
+    'village.nav.vision': 'Vision & Mission',
+    'village.nav.management': 'Management',
+    'village.nav.potential': 'Village Potential',
+    'village.nav.location': 'Location',
+    'village.heading.about': 'About Us',
+    'village.heading.history': 'The Journey to Pasirnanjung Geulis',
+    'village.heading.vision': 'Vision & Mission',
+    'village.heading.management': 'Who Runs the Tourism Village',
+    'village.heading.potential':
+        'Pasirnanjung Geulis, Growing Together with Its People',
+    'village.heading.location': 'Location',
+    'village.visionLabel': 'Vision',
+    'village.missionLabel': 'Mission',
+    'village.directions': 'Get Directions',
+    'village.mapTitle': 'Map of Pasirnanjung Geulis Tourism Village',
+    'events.upcoming': 'Upcoming Events',
+    'calendar.details': 'View details',
+    'calendar.previous': 'Previous month',
+    'calendar.next': 'Next month',
+    'calendar.today': 'Today',
+    'calendar.eventCount': '{count} events',
+    'calendar.noEventsDay': 'No events on this day.',
+    'calendar.noEventsMonth': 'No events this month yet.',
+    'visit.facilitiesTitle': 'Facilities & Prices',
+    'visit.facilitiesDescription':
+        'Base price per rental unit. The final price is calculated automatically when you pick your dates.',
+    'visit.perDay': '/ day',
+    'visit.reserve': 'Book',
+    'visit.flow.choose.title': 'Choose a facility & dates',
+    'visit.flow.choose.text':
+        'Open the facility page and pick dates that are still available.',
+    'visit.flow.form.title': 'Fill in the form',
+    'visit.flow.form.text':
+        'Enter your name, WhatsApp number and number of guests. No account needed.',
+    'visit.flow.pay.title': 'Pay the {percent}% deposit & upload proof',
+    'visit.flow.pay.text':
+        'Transfer the deposit shown on your order page, then upload the transfer proof.',
+    'visit.flow.verify.title': 'Wait for verification',
+    'visit.flow.verify.text':
+        'The managers check your transfer proof within 1×24 hours.',
+    'visit.flow.confirmed.title': 'Booking confirmed',
+    'visit.flow.confirmed.text':
+        'Once the deposit is verified, your dates are secured and cannot be booked by anyone else.',
+    'visit.flow.settle.title': 'Settle the balance',
+    'visit.flow.settle.text':
+        'Pay the rest by transfer (upload the proof on your order page) or in cash on site.',
+    'visit.shortNoticeTitle': 'Short-notice or hourly rental?',
+    'visit.shortNoticeText':
+        'For short-notice rentals or hourly facilities (such as a gazebo or karaoke), contact the managers via WhatsApp {phone}.',
+    'visit.shortNoticeTextNoPhone':
+        'For short-notice rentals or hourly facilities (such as a gazebo or karaoke), contact the managers via WhatsApp.',
+    'visit.chatManagers': 'Chat with the managers',
+    'visit.termsTitle': 'Booking Terms',
 };
 
 const messages: Record<Locale, Record<MessageKey, string>> = { id, en };

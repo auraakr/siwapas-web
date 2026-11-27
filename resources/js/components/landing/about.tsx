@@ -1,4 +1,5 @@
-import { MapPin } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { ArrowRight, MapPin } from 'lucide-react';
 import Media from '@/components/landing/media';
 import SectionHeading from '@/components/landing/section-heading';
 import { useTranslation } from '@/lib/i18n';
@@ -25,10 +26,9 @@ export default function About({
                         eyebrow={t('about.eyebrow')}
                         title={t('about.title')}
                     />
-                    <div className="mt-6 space-y-4 leading-relaxed text-forest-800/80">
-                        <p>{t('about.p1')}</p>
-                        <p>{t('about.p2')}</p>
-                    </div>
+                    <p className="mt-6 leading-relaxed text-forest-800/80">
+                        {t('about.p1')}
+                    </p>
                     <ul className="mt-6 space-y-2 text-sm font-medium text-forest-900">
                         {highlights.map((item) => (
                             <li key={item} className="flex items-center gap-2">
@@ -37,6 +37,13 @@ export default function About({
                             </li>
                         ))}
                     </ul>
+                    <Link
+                        href="/profil-desa"
+                        className="mt-8 inline-flex items-center gap-2 rounded-md border border-forest-800 px-5 py-2.5 text-sm font-semibold text-forest-900 transition hover:bg-forest-800 hover:text-cream"
+                    >
+                        {t('about.more')}
+                        <ArrowRight className="size-4" aria-hidden="true" />
+                    </Link>
                 </div>
 
                 <div className="relative mx-auto w-full max-w-md">

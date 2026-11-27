@@ -22,8 +22,7 @@ type NavColumn = { heading: MessageKey; links: NavLink[] };
 type NavItem = { label: MessageKey; href?: string; columns?: NavColumn[] };
 
 /**
- * Five top-level items, following the client's outline: the groups that need more room open a
- * panel with titled columns.
+ * Five top-level items, following the client's outline. Jelajah opens a small panel.
  */
 const navigation: NavItem[] = [
     { label: 'nav.home', href: home().url },
@@ -35,22 +34,14 @@ const navigation: NavItem[] = [
                 heading: 'nav.explore.tourism',
                 links: [
                     {
-                        label: 'nav.destinations',
+                        label: 'nav.explore.facilities',
+                        href: facilities.index().url,
+                    },
+                    {
+                        label: 'nav.explore.destinations',
                         href: destinations.index().url,
                     },
-                    { label: 'nav.facilities', href: facilities.index().url },
-                    { label: 'nav.events', href: events.index().url },
-                ],
-            },
-            {
-                heading: 'nav.explore.village',
-                links: [
-                    {
-                        label: 'nav.products',
-                        href: destinations.index({ query: { tab: 'umkm' } })
-                            .url,
-                    },
-                    { label: 'nav.stories', href: '/#cerita' },
+                    { label: 'nav.explore.events', href: events.index().url },
                 ],
             },
         ],
@@ -120,6 +111,27 @@ export default function SiteHeader() {
     const closeSoon = () => {
         closeTimer.current = setTimeout(() => setOpenMenu(null), 150);
     };
+
+    // Pages with their own sticky bar (the village profile) sit right below the header.
+    useEffect(() => {
+        const header = headerRef.current;
+
+        if (!header) {
+            return;
+        }
+
+        const publish = () =>
+            document.documentElement.style.setProperty(
+                '--site-header-height',
+                `${header.offsetHeight}px`,
+            );
+        const observer = new ResizeObserver(publish);
+
+        publish();
+        observer.observe(header);
+
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         const onKey = (event: KeyboardEvent) => {

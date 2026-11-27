@@ -1,5 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, MapPin } from 'lucide-react';
+import EventCalendar, {
+    type EventCalendarData,
+} from '@/components/site/event-calendar';
 import HostEvent from '@/components/site/host-event';
 import PageTitle from '@/components/site/page-title';
 import { formatDateTime, formatRupiah } from '@/lib/format';
@@ -16,9 +19,11 @@ type EventSummary = {
 };
 
 export default function EventsIndex({
+    calendar,
     events,
     event_venues,
 }: {
+    calendar: EventCalendarData;
     events: EventSummary[];
     event_venues: EventVenue[];
 }) {
@@ -50,6 +55,12 @@ export default function EventsIndex({
                 title={t('nav.events')}
                 description={t('events.pageDescription')}
             />
+
+            <EventCalendar calendar={calendar} />
+
+            <h2 className="mt-14 mb-5 font-serif text-2xl font-semibold text-forest-900">
+                {t('events.upcoming')}
+            </h2>
 
             {events.length === 0 ? (
                 <p className="rounded-2xl border bg-white p-8 text-center text-muted-foreground">
