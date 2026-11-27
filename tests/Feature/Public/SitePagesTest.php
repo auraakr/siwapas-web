@@ -136,6 +136,6 @@ it('shows the village profile even before any page has been written', function (
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('site/village')
-            ->where('story', null)
+            ->has('sections', 0)
             ->has('team', 0));
 });
