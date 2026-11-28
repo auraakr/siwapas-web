@@ -105,10 +105,10 @@ repo.
 | `FILESYSTEM_DISK` | `local` (unggahan sementara Filament) | ya |
 | `MEDIA_DISK` | `supabase_public` | ya |
 | `PAYMENT_PROOF_DISK` | `supabase_private` | ya |
-| `SUPABASE_S3_KEY` | Access key ID | ya |
-| `SUPABASE_S3_SECRET` | Secret access key | ya |
-| `SUPABASE_S3_REGION` | region project, mis. `ap-northeast-1` | ya |
-| `SUPABASE_S3_ENDPOINT` | `https://<project-ref>.supabase.co/storage/v1/s3` | ya |
+| `SUPABASE_S3_KEY` | 84177075a83828faf49d393a31a50ea9 | ya |
+| `SUPABASE_S3_SECRET` | ddadd0b3a2df723058f4013465c2e155ecff7b050838965c2334ddd6a89beb52 | ya |
+| `SUPABASE_S3_REGION` | ap-northeast-1, mis. `ap-northeast-1` | ya |
+| `SUPABASE_S3_ENDPOINT` | `https://ktrbzjseaqawfxwlmxjw.storage.supabase.co/storage/v1/s3` | ya |
 | `SUPABASE_PUBLIC_BUCKET` | `media` | ya |
 | `SUPABASE_PRIVATE_BUCKET` | `payment-proofs` | ya |
 | `SUPABASE_PUBLIC_URL` | `https://<project-ref>.supabase.co/storage/v1/object/public/media` | ya |
